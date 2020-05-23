@@ -1,0 +1,5 @@
+module Configuration
+
+[<Literal>]
+let sqlConnectionString = @"Server=tcp:success-ventures-2.database.windows.net,1433;Initial Catalog=SalesRepAppData;Persist Security Info=False;User ID=TerenceH;Password={your_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+//let sqlConnectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=SalesRep;Integrated Security=True"

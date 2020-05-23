@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Helpers.fs" />
+    <Compile Include="Configuration.fs" />
+    <Compile Include="SqlScripts.fs" />
+    <Compile Include="UserDefinedFields.fs" />
+    <Compile Include="Pricelist.fs" />
+    <Compile Include="Group.fs" />
+    <Compile Include="Area.fs" />
+    <Compile Include="SalesRep.fs" />
+    <Compile Include="Customer.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.35" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+  </ItemGroup>
+</Project>
