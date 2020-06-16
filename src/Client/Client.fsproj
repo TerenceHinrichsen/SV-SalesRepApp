@@ -21,6 +21,7 @@
         <Compile Include="Drawer.fs" />
         <Compile Include="AppBar.fs" />
         <Compile Include="Home.fs" />
+        <Compile Include="CustomerCreate.fs" />
         <Compile Include="CustomerEdit.fs" />
         <Compile Include="CustomerView.fs" />
         <Compile Include="Listings.fs" />

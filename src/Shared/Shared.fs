@@ -118,6 +118,30 @@ type UpdateData = {
   RepVisitFreq: string
 }
 
+type NewAccountData = {
+  CustomerName : string
+  CustomerDescription : string
+  AreaId: int
+  GroupId: int
+  PricelistId: int
+  Physical1: string
+  Physical2: string
+  Suburb: string
+  GPS: string
+  PostCode: string
+  Telephone: string
+  Cell: string
+  Fax: string
+  RepVisitFreq: string
+  Contact1: string
+  DeliveryContact: string
+  DeliveryEmail: string
+  MarketSegment: string
+  Email: string
+  RepId: int
+}
+
+
 type ISuccessApi =
     { getCustomerById : int -> Async<Customer>
       getCustomerIdFromCode : string -> Async<int>
@@ -134,6 +158,7 @@ type ISuccessApi =
       getRepVisitFrequencies : unit -> Async<string list>
       getCustomerViewDetail : int -> Async<CustomerDisplayDetail>
       updateCustomerMaster : UpdateData -> Async<string>
+      createNewCustomerAccount : NewAccountData -> Async<string>
       getLast5Invoices : int -> Async<TransDetail list>
       getLast5Credits : int -> Async<TransDetail list>
       getSalesGraphData : int -> Async<SalesGraphPoint list>

@@ -5,28 +5,28 @@ let SalesRepSelect = """
 SELECT SalesRepId Id
 	 , SalesRepCode Code
 	 , SalesRepDescription Description
-FROM   SalesRep.dbo.SalesRep;
+FROM   dbo.SalesRep;
 """
 [<Literal>]
 let AreaSelect = """
 SELECT idArea AreaId
 	 , AreaCode
 	 , AreaDescription
-FROM   SalesRep.dbo.Area;
+FROM   dbo.Area;
 """
 [<Literal>]
 let CustomerGroupSelect = """
 SELECT GroupId GroupId
 	 , GroupCode
 	 , GroupDescription
-FROM   SalesRep.dbo.CustomerGroup;
+FROM   dbo.CustomerGroup;
 """
 [<Literal>]
 let PriceListSelect = """
 SELECT PriceListId Id
 	 , PriceListName Name
 	 , PriceListDescription Description
-FROM   SalesRep.dbo.Pricelists;
+FROM   dbo.Pricelists;
 """
 
 [<Literal>]
@@ -118,7 +118,6 @@ SELECT c.CustomerId
 FROM   dbo.Customer c
 WHERE c.CustomerId = @CustomerId
 ORDER BY CustomerAccountNumber ;
-
 """
 
 [<Literal>]
@@ -461,17 +460,15 @@ SELECT @CustomerId
 [<Literal>]
 let MarketSegments =
   """
-    SELECT rud.cLookupOptions
-    FROM   SDK_Practise.dbo._rtblUserDict rud
-    WHERE  rud.cFieldName = 'ulARMarketSegment';
+    SELECT TOP (1) [MarketSegment] cLookupOptions
+        FROM [dbo].[MarketSegments]
   """
 
 [<Literal>]
 let RepVisitFrequency =
   """
-    SELECT rud.cLookupOptions
-    FROM   SDK_Practise.dbo._rtblUserDict rud
-    WHERE  rud.cFieldName = 'ulARREPVISITFREQ';
+    SELECT TOP (1) [RepVisitFrequency] cLookupOptions
+      FROM [dbo].[RepVisitFrequencies]
   """
 
 let UpdateCustomerMaster =
@@ -497,17 +494,35 @@ SET   CustomerAccountName = @CustomerName
 	, ulARMarketSegment = @MarketSegment
 	, RepVisitFrequency = @RepVisitFreq
 WHERE CustomerId = @CustomerId
+  """
 
+let CreateCustomer =
+  """
+INSERT INTO dbo.ChangeLog
+( CustomerId , ChangeText )
+VALUES ('0', @ChangeText)
+
+INSERT INTO dbo.NewAccountApplication
+(
+	AccountName   , AccountDescription  , AreaId  , GroupId  , PriceListId  , Physical  , Physical2  , Suburb
+  , Physical4  , GPS  , PostalCode  , Telephone  , Cellphone  , Fax  , RepVisitFreq  , Contact_Person  , Delivered_To  , DeliveryEmail
+  , MarketSegment  , Email  , RepId  , Processed  , ReceivedOnDateTime)
+VALUES
+(	@AccountName		  , @AccountDescription	  , @AreaId  , @GroupId  , @PriceListId
+  , @Physical1  , @Physical2  , @Suburb  , @Physical4  , @GPS  , @PostCode  , @Telephone
+  , @Cellphone  , @Fax  , @RepVisitFreq  , @Contact_Person  , @DeliverTo  , @DeliveryEmail  , @MarketSegment
+  , @Email  , @RepId  , 0 , SYSDATETIME()
+)
   """
 
 let CustomerViewData =
   """
-  WITH LastInvoiceByCustomer
-  AS (SELECT	 par.AccountLink
-		   , MAX(par.TxDate) LastTransactionDate
-	FROM	 SDK_Practise.dbo.PostAR par
-  WHERE par.AccountLink = @customerId
-	GROUP BY par.AccountLink)
+ WITH LastInvoiceByCustomer
+  AS (SELECT	 par.CustomerId
+		   , MAX(par.TransactionDate) LastTransactionDate
+	FROM	 dbo.CustomerTransactions par
+  WHERE par.CustomerId = @customerId
+	GROUP BY par.CustomerId)
 SELECT Id			   = c.CustomerId
 	 , [Name]		   = c.CustomerAccountName
 	 , [Group]		   = c.GroupCode
@@ -521,7 +536,7 @@ SELECT Id			   = c.CustomerId
 	 , LastInvoiceDate = FORMAT(li.LastTransactionDate,'yyyy-MM-dd')
 	 , GeneralComments = c.GeneralComments
 FROM   Customer c
-LEFT JOIN LastInvoiceByCustomer li ON c.CustomerId = li.AccountLink
+LEFT JOIN LastInvoiceByCustomer li ON c.CustomerId = li.CustomerId
 WHERE c.CustomerId = @customerId
   """
 

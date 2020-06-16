@@ -283,3 +283,49 @@ module Customer =
     let parameters = dict ["CustomerId" => customerId ]
     try connection.Query<SalesHistoryPoint> (sql, parameters, transaction) |> Seq.toList
     finally connection.Close()
+
+  let newAccountApplication (customerName : string) (customerDescription : string) (groupId: int ) (repId: int ) (pricelistId: int )
+    (contact1: string ) (contact2: string ) (telephone: string ) (cell: string ) (email: string ) (physical1: string) (physical2: string)
+    (physical3: string) (deliveryEmail: string) (marketSegment: string)  (repVisitFreq: string) (areaId: int)
+    (gps: string) (postCode: string) (fax: string)
+        =
+    registerOptionTypes()
+    let sql = SqlScripts.CreateCustomer
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("CreateNew")
+    let changeText = sprintf "New account for: CustomerName: %A GroupId: %A RepId: %A PricelistId: %A Contact1: %A
+                              Contact2: %A Telepone: %A Cell:%A Email: %A Physical: %A Physical2: %A Physical3: %A DeliveryEmail: %A MarketSegment: %A RepVisitFrequency: %A "
+                              customerName  groupId  repId  pricelistId  contact1  contact2  telephone 
+                              cell email physical1 physical2  physical3 deliveryEmail   marketSegment repVisitFreq
+    let parameters = dict [ "ChangeText"          => changeText
+                            "AccountName"        => customerName
+                            "AccountDescription" => customerDescription
+                            "AreaId"              => areaId
+                            "GroupId"             => groupId
+                            "PriceListId"         => pricelistId
+                            "Physical1"           => physical1
+                            "Physical2"           => physical2
+                            "Suburb"              => physical3
+                            "GPS"                 => gps
+                            "PostCode"            => postCode
+                            "Telephone"           => telephone
+                            "Cellphone"           => cell
+                            "Fax"                 => fax
+                            "RepVisitFreq"        => repVisitFreq
+                            "Contact_Person"      => contact1
+                            "DeliverTo"           => contact2
+                            "DeliveryEmail"       => deliveryEmail
+                            "MarketSegment"       => marketSegment
+                            "Email"               => email
+                            "RepId"               => repId
+    ]
+    try
+      try
+        connection.Query<unit>(sql, parameters, transaction = transaction) |> ignore
+        transaction.Commit()
+        "Success"
+      with
+        | :? System.Exception as exn -> sprintf "Could not insert into datase %A" exn
+    finally
+      connection.Close()

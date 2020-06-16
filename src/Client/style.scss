@@ -7,6 +7,8 @@ $fa_font_path: "~@fortawesome/fontawesome-free/webfonts";
 @import '~@fortawesome/fontawesome-free/scss/solid.scss';
 @import '~@fortawesome/fontawesome-free/scss/brands.scss';
 
+@import url(http://allfont.net/allfont.css?fonts=star-jedi);
+
 // OpenSans
 $FontPathOpenSans: "~open-sans-fonts/open-sans";
 @import '~open-sans-fonts/open-sans';
@@ -72,6 +74,10 @@ html, body {
   margin: auto;
   width: 32%;
   min-height: 220px;
+}
+
+.AppTitle {
+    font-family: 'Star Jedi', Arial;
 }
 
 .inputPadding {

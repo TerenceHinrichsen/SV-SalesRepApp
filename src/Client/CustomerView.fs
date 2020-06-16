@@ -145,6 +145,7 @@ module CustomerView =
                         Mui.card [ card.square true; card.raised true ; card.classes.root "ThirdCard";
                           card.children [
                                         Mui.table [
+                                          table.size.small
                                           table.children [
                                           Mui.tableRow [ tableRow.children [ Mui.tableCell "Last rep visit"; Mui.tableCell state.LastRepVisit] ]
                                           Mui.tableRow [ tableRow.children [ Mui.tableCell "Last invoice" ; Mui.tableCell state.LastInvoice ] ]
@@ -155,14 +156,14 @@ module CustomerView =
                         Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
                           card.children [
                                         Strings.subtitle "Last 5 invoices for this customer"
-                                        Mui.table [table.children (tableRows state.InvoiceList) ]
+                                        Mui.table [table.size.small ;table.children (tableRows state.InvoiceList) ]
                                         ]
                                         ]
                         Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
                           card.children [
                                         Strings.subtitle "Last 5 returns for this customer"
                                         Mui.table [
-                                          table.children (tableRows state.CreditList) ]
+                                          table.size.small ;table.children (tableRows state.CreditList) ]
                                         ]
                                         ]
                           ] ] ] ]
@@ -187,6 +188,32 @@ module CustomerView =
                                           ]
                             ] ] ] ]
                   ] ]
+
+                Mui.expansionPanel [
+                  expansionPanel.variant.outlined
+                  expansionPanel.defaultExpanded true
+                  expansionPanel.children [
+                    Mui.expansionPanelSummary [
+                      expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")
+                      expansionPanelSummary.children (Strings.header5 "Specials and purchases") ]
+                    Mui.expansionPanelDetails [
+                      expansionPanelDetails.classes.root "wrappingContainer"
+                      expansionPanelDetails.children [
+                        Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
+                          card.children [ "Show which products where purchased and their average over last 8 weeks"] ]
+                        Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
+                          card.children [
+                                        Mui.table [
+                                          table.children [
+                                          Mui.tableRow [ tableRow.children [ Mui.tableCell "Expiry date"; Mui.tableCell "2020-01-01"] ]
+                                          Mui.tableRow [ tableRow.children [ Mui.tableCell "Effective from" ; Mui.tableCell "2020-02-02" ] ]
+                                          Mui.tableRow [ tableRow.children [ Mui.tableCell "Product" ; Mui.tableCell  "X30"] ]
+                                          Mui.tableRow [ tableRow.children [ Mui.tableCell "Price (dozen)" ; Mui.tableCell "R 12.30" ] ]
+                                          ] ]
+                                        ]
+                                      ]
+                          ] ] ] ]
+
                 Mui.expansionPanel [
                   expansionPanel.variant.outlined
                   expansionPanel.children [

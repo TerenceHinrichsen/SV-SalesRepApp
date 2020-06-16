@@ -19,6 +19,7 @@ type PageState =
     | ListingPageState of Listings.State
     | CustomerEditState of CustomerEdit.State
     | CustomerViewState of CustomerView.State
+    | CustomerCreateState of CustomerCreate.State
     | LoginPageState of Login.State
     | NotFoundState
 
@@ -40,24 +41,25 @@ type State = {
   }
 
 type Message = 
-    | DrawerMessage of Drawer.Message
-    | ListingsMessage of Listings.Message
-    | CustomerEditMessage of CustomerEdit.Message
-    | CustomerViewMessage of CustomerView.Message
-    | LoginPageMessage of Login.Message
-    | AreaListUpdated of Area list
-    | GroupListUpdated of Group list
-    | PriceListListUpdated of PriceList list
-    | SalesRepListUpdate of SalesRep list
-    | MarketSegmentsUpdated of string list
+    | DrawerMessage              of Drawer.Message
+    | ListingsMessage            of Listings.Message
+    | CustomerEditMessage        of CustomerEdit.Message
+    | CustomerCreateMessage      of CustomerCreate.Message
+    | CustomerViewMessage        of CustomerView.Message
+    | LoginPageMessage           of Login.Message
+    | AreaListUpdated            of Area list
+    | GroupListUpdated           of Group list
+    | PriceListListUpdated       of PriceList list
+    | SalesRepListUpdate         of SalesRep list
+    | MarketSegmentsUpdated      of string list
     | RepVisitFrequenciesUpdated of string list
-    | UserLoggedOn of User
+    | UserLoggedOn
 
 let init () : State * Cmd<Message> =
     let initialDrawerState, _ = Drawer.init()
     let initialHomePageState, _ = Home.init()
     let initialModel = {
-        UserAuthenticated = true
+        UserAuthenticated = false
         LoggedOnUser = { UserId = 0; Username = "Unknown"}
         DrawerState = initialDrawerState
         PageState = HomePageState initialHomePageState
@@ -69,7 +71,7 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
   match msg, currentState.PageState with
   | LoginPageMessage login, _ ->
     match login with
-    | Login.LoginRequested (x, y) -> {currentState with Loading = true }, Cmd.none
+    | Login.LoginRequested (x, y) -> {currentState with Loading = true; UserAuthenticated = true }, Cmd.ofMsg UserLoggedOn
     | _ -> currentState, Cmd.none
   | DrawerMessage drawerMessage, _  -> 
     let nextDrawerState, nextDrawerCommand = Drawer.update drawerMessage currentState.DrawerState
@@ -136,6 +138,33 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
             CustomerEdit.State.ResponseFromDatabase = None }, Cmd.none
           | None -> CustomerEdit.init()
       { currentState with PageState = CustomerEditState editState; DrawerState = nextDrawerState }, nextDrawerCommand
+    | MenuItem.CustomerCreate ->
+      let createState, _ =
+        match currentState.SearchFields with
+          | Some x -> {
+            CustomerCreate.State.isLoading                 = false
+            CustomerCreate.State.AreaList                  = x.AreaList                  |> Option.get
+            CustomerCreate.State.GroupList                 = x.GroupList                 |> Option.get
+            CustomerCreate.State.PriceListList             = x.PriceListList             |> Option.get
+            CustomerCreate.State.SalesRepList              = x.SalesRepList              |> Option.get
+            CustomerCreate.State.MarketSegments            = x.MarketSegments            |> Option.get
+            CustomerCreate.State.RepVisitFrequencies       = x.RepVisitFrequencies       |> Option.get
+            CustomerCreate.State.SelectedArea              = None
+            CustomerCreate.State.AreaCode                  = ""
+            CustomerCreate.State.SelectedGroup             = None
+            CustomerCreate.State.GroupCode                 = ""
+            CustomerCreate.State.SelectedRep               = None
+            CustomerCreate.State.RepCode                   = ""
+            CustomerCreate.State.SelectedPricelist         = None
+            CustomerCreate.State.PricelistCode             = ""
+            CustomerCreate.State.CurrentCustomerId         = None
+            CustomerCreate.State.CustomerCode              = ""
+            CustomerCreate.State.DetailForm                = CustomerCreate.emptyForm
+            CustomerCreate.State.SelectedRepVisitFrequency = ""
+            CustomerCreate.State.SelectedMarketSegment = ""
+            CustomerCreate.State.ResponseFromDatabase = None }, Cmd.none
+          | None -> CustomerCreate.init()
+      { currentState with PageState = CustomerCreateState createState; DrawerState = nextDrawerState }, nextDrawerCommand
     | MenuItem.CustomerView ->
       let customerViewState, _ = CustomerView.init ()
       { currentState with PageState = CustomerViewState customerViewState; DrawerState = nextDrawerState }, nextDrawerCommand
@@ -176,6 +205,9 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
   | CustomerEditMessage msg, CustomerEditState state ->
     let nextState, nextCommand = CustomerEdit.update msg state
     { currentState with PageState = CustomerEditState nextState }, Cmd.map Message.CustomerEditMessage nextCommand
+  | CustomerCreateMessage msg, CustomerCreateState state ->
+    let nextState, nextCommand = CustomerCreate.update msg state
+    { currentState with PageState = CustomerCreateState nextState }, Cmd.map Message.CustomerCreateMessage nextCommand
   | CustomerViewMessage msg, CustomerViewState state ->
     let nextState, nextCommand = CustomerView.update msg state
     { currentState with PageState = CustomerViewState nextState }, nextCommand |> Cmd.map CustomerViewMessage
@@ -204,7 +236,7 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
                                 RepVisitFrequencies = pageState.RepVisitFrequencies
                                 MarketSegments = pageState.MarketSegmentList }},
       Cmd.none
-  | UserLoggedOn user, _ -> { currentState with UserAuthenticated = true; LoggedOnUser = user} , Cmd.OfAsync.perform Server.api.getAreaList () AreaListUpdated
+  | UserLoggedOn , _ -> { currentState with Loading = false} , Cmd.none
   | _, _ -> currentState, Cmd.none
 
 
@@ -226,11 +258,12 @@ let view (state : State) (dispatch : Message -> unit) =
                       card.variant.outlined
                       card.elevation 5
                       card.children [Mui.circularProgress []]]
-                  | ListingPageState state -> yield Listings.view state (ListingsMessage >> dispatch)
-                  | CustomerEditState state -> yield CustomerEdit.view state (CustomerEditMessage >> dispatch)
-                  | CustomerViewState state -> yield CustomerView.view state (CustomerViewMessage >> dispatch)
-                  | LoginPageState state -> yield Login.view state (LoginPageMessage >> dispatch)
-                  | NotFoundState -> yield Mui.typography "This page is not available"
+                  | ListingPageState    state -> yield Listings.view       state (ListingsMessage       >> dispatch)
+                  | CustomerEditState   state -> yield CustomerEdit.view   state (CustomerEditMessage   >> dispatch)
+                  | CustomerCreateState state -> yield CustomerCreate.view state (CustomerCreateMessage >> dispatch)
+                  | CustomerViewState   state -> yield CustomerView.view   state (CustomerViewMessage   >> dispatch)
+                  | LoginPageState      state -> yield Login.view          state (LoginPageMessage      >> dispatch)
+                  | NotFoundState             -> yield Mui.typography "This page is not available"
             ]
       ] ]
   | false ->

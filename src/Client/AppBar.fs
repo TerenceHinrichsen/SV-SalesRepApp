@@ -18,6 +18,7 @@ module AppBar =
       appBar.position.sticky
       appBar.elevation 5
       appBar.color.primary
+      appBar.classes.root "AppTitle"
       appBar.children [
         Mui.toolbar [
           toolbar.children [
@@ -30,4 +31,4 @@ module AppBar =
               typography.variant.h5
               typography.align.left
               typography.display.block
-              typography.children ["Success Ventures Sales Rep App" ] ] ] ] ] ]
+              typography.children ["The FORCE" ] ] ] ] ] ]

@@ -11,6 +11,7 @@ module Drawer =
     | CustomerListings
     | CustomerEdit
     | CustomerView
+    | CustomerCreate
 
   type State = { drawerIsOpen : bool
                  CurrentMenu: MenuItem}
@@ -27,7 +28,7 @@ module Drawer =
     | ChangeMenu newMenu -> {state with CurrentMenu = newMenu; drawerIsOpen = false}, Cmd.none
   
   let menuItems dispatch =
-    ["Home", Home;"Listings", CustomerListings; "Customer management", CustomerEdit; "View customer statistics", CustomerView]
+    ["Home", Home;"Listings", CustomerListings; "Customer management", CustomerEdit; "Account application", CustomerCreate]
     |> List.map (fun x ->
           Mui.listItem [ listItem.button true
                          prop.onClick (fun _ -> dispatch (x |> snd))

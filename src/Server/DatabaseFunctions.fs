@@ -164,3 +164,26 @@ module DbFunctions =
       SalesGraphPoint.Value = x.Value
       SalesGraphPoint.QtrTrend = x.QuarterTrend
     })
+
+  let newCustomerApplication newAccDetail =
+    Customer.newAccountApplication
+      newAccDetail.CustomerName
+      newAccDetail.CustomerDescription
+      newAccDetail.GroupId
+      newAccDetail.RepId
+      newAccDetail.PricelistId
+      newAccDetail.Contact1
+      newAccDetail.DeliveryContact
+      newAccDetail.Telephone
+      newAccDetail.Cell
+      newAccDetail.Email
+      newAccDetail.Physical1
+      newAccDetail.Physical2
+      newAccDetail.Suburb
+      newAccDetail.DeliveryEmail
+      newAccDetail.MarketSegment
+      newAccDetail.RepVisitFreq
+      newAccDetail.AreaId
+      newAccDetail.GPS
+      newAccDetail.PostCode
+      newAccDetail.Fax

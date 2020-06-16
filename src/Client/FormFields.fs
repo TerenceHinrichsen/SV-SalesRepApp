@@ -41,6 +41,7 @@ module FormFields =
       Mui.textField [
         textField.label label
         textField.value value
+        textField.defaultValue System.DateTime.Now
         textField.fullWidth true
         textField.variant.outlined
         textField.required true
