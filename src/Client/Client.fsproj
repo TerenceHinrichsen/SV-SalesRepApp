@@ -26,6 +26,7 @@
         <Compile Include="CustomerView.fs" />
         <Compile Include="Listings.fs" />
         <Compile Include="Login.fs" />
+        <Compile Include="ChangeHistory.fs" />
         <Compile Include="Client.fs" />
     </ItemGroup>
     <ItemGroup>

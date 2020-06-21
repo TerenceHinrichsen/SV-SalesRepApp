@@ -29,25 +29,25 @@ let port =
     |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
 
 let successApi = {
-  getCustomerById               = fun (value) -> async { return DbFunctions.getCustomerById value }
-  getCustomerIdFromCode         = fun (code) -> async { return DbFunctions.getCustomerIdForCode code}
-  getAreaList                   = fun () -> async { return DbFunctions.getAreaList }
-  getPricelist                  = fun () -> async { return DbFunctions.getPriceLists }
-  getGroupList                  = fun () -> async { return DbFunctions.getGroupList }
-  getSalesRepList               = fun () -> async { return DbFunctions.getSalesRepList }
-  getCustomerListBySearch       = fun search -> async { return DbFunctions.getCustomerBySearch search}
-  getCustomerListByArea         = fun (areaId) -> async { return DbFunctions.getCustomerByAreaId areaId}
-  getCustomerListBySalesRep     = fun (repId) -> async { return DbFunctions.getCustomerByRepId repId }
-  getCustomerListByGroup        = fun (groupId) -> async { return DbFunctions.getCustomerByRepId groupId }
+  getCustomerById                    = fun (value)   -> async { return DbFunctions.getCustomerById value }
+  getCustomerIdFromCode              = fun (code)    -> async { return DbFunctions.getCustomerIdForCode code}
+  getAreaList                        = fun ()        -> async { return DbFunctions.getAreaList }
+  getPricelist                       = fun ()        -> async { return DbFunctions.getPriceLists }
+  getGroupList                       = fun ()        -> async { return DbFunctions.getGroupList }
+  getSalesRepList                    = fun ()        -> async { return DbFunctions.getSalesRepList }
+  getCustomerListBySearch            = fun search    -> async { return DbFunctions.getCustomerBySearch search}
+  getCustomerListByArea              = fun (areaId)  -> async { return DbFunctions.getCustomerByAreaId areaId}
+  getCustomerListBySalesRep          = fun (repId)   -> async { return DbFunctions.getCustomerByRepId repId }
+  getCustomerListByGroup             = fun (groupId) -> async { return DbFunctions.getCustomerByRepId groupId }
   getCustomerListByOneOfRepGroupArea = fun (area, rep, group) -> async { return DbFunctions.getCustomerByCriteria area rep group }
-  getMarketSegments = fun () -> async { return DbFunctions.getMarketSegments }
-  getRepVisitFrequencies = fun () -> async { return DbFunctions.getRepVisitFreq }
-  updateCustomerMaster = fun (customerUpdateData) -> async {return DbFunctions.updateCustomerData customerUpdateData }
-  getCustomerViewDetail = fun (customerId) -> async { return DbFunctions.fetchDisplayDetail customerId }
-  getLast5Invoices = fun customerId -> async { return DbFunctions.fetchLast5Invoices customerId }
-  getLast5Credits = fun customerId -> async { return DbFunctions.fetchLast5CreditNotes customerId }
-  getSalesGraphData = fun customerId -> async { return DbFunctions.fetchSalesHistory customerId }
-  createNewCustomerAccount = fun customerUpdateData -> async {return DbFunctions.updateCustomerData customerUpdateData }
+  getMarketSegments                  = fun ()       -> async { return DbFunctions.getMarketSegments }
+  getRepVisitFrequencies             = fun ()       -> async { return DbFunctions.getRepVisitFreq }
+  updateCustomerMaster               = fun (customerUpdateData) -> async {return DbFunctions.updateCustomerData customerUpdateData }
+  getCustomerViewDetail              = fun (customerId) -> async { return DbFunctions.fetchDisplayDetail customerId }
+  getLast5Invoices                   = fun customerId   -> async { return DbFunctions.fetchLast5Invoices customerId }
+  getLast5Credits                    = fun customerId   -> async { return DbFunctions.fetchLast5CreditNotes customerId } 
+  getSalesGraphData                  = fun customerId   -> async { return DbFunctions.fetchSalesHistory customerId }
+  createNewCustomerAccount           = fun customerApplicationData -> async {return DbFunctions.newCustomerApplication customerApplicationData }
 }
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =

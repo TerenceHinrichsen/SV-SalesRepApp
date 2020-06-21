@@ -240,7 +240,7 @@ module Customer =
         transaction.Commit()
         "Success"
       with
-        | :? System.Exception as exn -> sprintf "Could not insert into datase %A" exn
+        | exn -> sprintf "Could not insert into datase %A" exn
     finally
       connection.Close()
 
@@ -318,14 +318,13 @@ module Customer =
                             "DeliveryEmail"       => deliveryEmail
                             "MarketSegment"       => marketSegment
                             "Email"               => email
-                            "RepId"               => repId
-    ]
+                            "RepId"               => repId ]
     try
       try
         connection.Query<unit>(sql, parameters, transaction = transaction) |> ignore
         transaction.Commit()
         "Success"
       with
-        | :? System.Exception as exn -> sprintf "Could not insert into datase %A" exn
+        | exn -> sprintf "Could not insert into database %A" exn
     finally
       connection.Close()

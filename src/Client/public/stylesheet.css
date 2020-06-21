@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Star Jedi';
+    src: url('StarJedi.woff2') format('woff2'),
+        url('StarJedi.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+

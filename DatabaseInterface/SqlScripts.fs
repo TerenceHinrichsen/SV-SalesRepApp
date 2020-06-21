@@ -505,11 +505,11 @@ VALUES ('0', @ChangeText)
 INSERT INTO dbo.NewAccountApplication
 (
 	AccountName   , AccountDescription  , AreaId  , GroupId  , PriceListId  , Physical  , Physical2  , Suburb
-  , Physical4  , GPS  , PostalCode  , Telephone  , Cellphone  , Fax  , RepVisitFreq  , Contact_Person  , Delivered_To  , DeliveryEmail
+  , GPS  , PostalCode  , Telephone  , Cellphone  , Fax  , RepVisitFreq  , Contact_Person  , Delivered_To  , DeliveryEmail
   , MarketSegment  , Email  , RepId  , Processed  , ReceivedOnDateTime)
 VALUES
 (	@AccountName		  , @AccountDescription	  , @AreaId  , @GroupId  , @PriceListId
-  , @Physical1  , @Physical2  , @Suburb  , @Physical4  , @GPS  , @PostCode  , @Telephone
+  , @Physical1  , @Physical2  , @Suburb  , @GPS  , @PostCode  , @Telephone
   , @Cellphone  , @Fax  , @RepVisitFreq  , @Contact_Person  , @DeliverTo  , @DeliveryEmail  , @MarketSegment
   , @Email  , @RepId  , 0 , SYSDATETIME()
 )

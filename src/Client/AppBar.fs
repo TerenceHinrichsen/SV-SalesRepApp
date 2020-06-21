@@ -18,7 +18,6 @@ module AppBar =
       appBar.position.sticky
       appBar.elevation 5
       appBar.color.primary
-      appBar.classes.root "AppTitle"
       appBar.children [
         Mui.toolbar [
           toolbar.children [
@@ -28,7 +27,7 @@ module AppBar =
               iconButton.children [
                 menuIcon[]]]
             Mui.typography [
-              typography.variant.h5
               typography.align.left
+              typography.classes.root "AppTitle"
               typography.display.block
-              typography.children ["The FORCE" ] ] ] ] ] ]
+              typography.children ["THE foXcE" ] ] ] ] ] ]

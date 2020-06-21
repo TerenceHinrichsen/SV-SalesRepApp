@@ -20,6 +20,7 @@ type PageState =
     | CustomerEditState of CustomerEdit.State
     | CustomerViewState of CustomerView.State
     | CustomerCreateState of CustomerCreate.State
+    | ChangeHistoryState of ChangeHistory.State
     | LoginPageState of Login.State
     | NotFoundState
 
@@ -168,6 +169,9 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
     | MenuItem.CustomerView ->
       let customerViewState, _ = CustomerView.init ()
       { currentState with PageState = CustomerViewState customerViewState; DrawerState = nextDrawerState }, nextDrawerCommand
+    | MenuItem.ChangeHistory ->
+      let state, _ = ChangeHistory.init ()
+      { currentState with PageState = ChangeHistoryState state; DrawerState = nextDrawerState }, nextDrawerCommand
   | ListingsMessage msg, ListingPageState state ->
     let nextListingState, nextListingCommand = Listings.update msg state
     match nextListingState.ShowEditScreen, nextListingState.ShowViewScreen, nextListingState.CurrentCustomerId with
@@ -263,6 +267,7 @@ let view (state : State) (dispatch : Message -> unit) =
                   | CustomerCreateState state -> yield CustomerCreate.view state (CustomerCreateMessage >> dispatch)
                   | CustomerViewState   state -> yield CustomerView.view   state (CustomerViewMessage   >> dispatch)
                   | LoginPageState      state -> yield Login.view          state (LoginPageMessage      >> dispatch)
+                  | ChangeHistoryState  state -> yield ChangeHistory.view  state 
                   | NotFoundState             -> yield Mui.typography "This page is not available"
             ]
       ] ]
