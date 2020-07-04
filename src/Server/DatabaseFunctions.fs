@@ -35,6 +35,9 @@ module DbFunctions =
   let getMarketSegments =
     UserDefinedFields.MarketSegments |> Array.toList
 
+  let loginUser (username: string, password: string) =
+    User.login username password
+
   let getRepVisitFreq =
     UserDefinedFields.RepVisitFrequencies |> Array.toList
 
@@ -160,7 +163,7 @@ module DbFunctions =
     Customer.fetchSalesHistory customerId
     |> List.map (fun x -> {
       SalesGraphPoint.Period = x.Period
-      SalesGraphPoint.Dozens = x.Dozens
+      SalesGraphPoint.Boxes = x.Boxes
       SalesGraphPoint.Value = x.Value
       SalesGraphPoint.QtrTrend = x.QuarterTrend
     })

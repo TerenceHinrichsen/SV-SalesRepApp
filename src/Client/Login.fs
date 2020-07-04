@@ -3,7 +3,7 @@ namespace Pages
 open Components
 open System
 open Elmish
-open Elmish.React
+open API
 
 
 module Login =
@@ -13,23 +13,31 @@ module Login =
   type State = {
     Username: string
     Password: string
-  }
+    IsLoading : bool 
+    LoginSuccess: bool option
+    StatusMessage: string  }
 
   type Message =
     | UsernameChanged of string
     | Passwordchanged of string
-    | LoginRequested of string * string
+    | LoginRequested
+    | LoginResponse of bool
 
   let init = {
     Username = String.Empty
     Password = String.Empty
-  }
+    IsLoading = false
+    LoginSuccess = None
+    StatusMessage = "" }
 
   let update (msg : Message) (state : State) : State * Cmd<Message> =
     match msg with
     | UsernameChanged x -> {state with Username = x}, Cmd.none
     | Passwordchanged x -> {state with Password = x}, Cmd.none
-    | LoginRequested (username, password) -> state, Cmd.none
+    | LoginRequested -> {state with IsLoading = true}, (Cmd.OfAsync.perform Server.api.loginUser (state.Username, state.Password)) LoginResponse
+    | LoginResponse success ->
+        let response = if not success then "Could not log you in!" else ""
+        {state with IsLoading = false; StatusMessage = response; LoginSuccess = Some success }, Cmd.none
 
   let view (state : State) (dispatch : Message -> unit) =
     Mui.paper [
@@ -46,6 +54,7 @@ module Login =
               formControl.children [
                 Mui.textField [
                   textField.autoFocus true
+                  textField.disabled state.IsLoading
                   textField.fullWidth true
                   textField.onChange (fun x -> dispatch <| UsernameChanged x)
                   textField.variant.outlined
@@ -57,10 +66,12 @@ module Login =
               formControl.children [
                 Mui.textField [
                   textField.fullWidth true
+                  textField.disabled state.IsLoading
                   textField.onChange (fun x -> dispatch <| Passwordchanged x)
                   textField.variant.outlined
                   textField.type' "password"
                   textField.label "Password"
+                  textField.error (if state.StatusMessage <> "" then true else false)
                   textField.required true ] ] ]
             Mui.formControl [
               formControl.fullWidth true
@@ -68,14 +79,17 @@ module Login =
               formControl.children [
                 Mui.button [
                   button.type'.submit
+                  button.disabled state.IsLoading
                   button.variant.contained
                   button.color.primary
-                  prop.onClick (fun _ -> dispatch  <| LoginRequested (state.Username, state.Password))
+                  prop.onClick (fun _ -> dispatch  <| LoginRequested)
                   button.fullWidth true
                   button.children "LOG IN"
                 ]
-              ]
-            ]
+              ] ]
+            if state.IsLoading then Mui.linearProgress[]
+            if state.LoginSuccess |> Option.isSome then 
+                if not state.LoginSuccess.Value then Mui.alert[ alert.severity.error; alert.children[state.StatusMessage]]
             Strings.body1 "Please note that all information on this site is confidential and should not be shared with any individual."
           ]
         ]

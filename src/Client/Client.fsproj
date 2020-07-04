@@ -14,8 +14,9 @@
         <Compile Include="CustomerVisitForm.fs" />
         <Compile Include="Buttons.fs" />
         <Compile Include="Strings.fs" />
-        <Compile Include="SalesGraph.fs" />
         <Compile Include="API.fs" />
+        <Compile Include="Login.fs" />
+        <Compile Include="SalesGraph.fs" />
         <Compile Include="CustomerTable.fs" />
         <Compile Include="Version.fs" />
         <Compile Include="Drawer.fs" />
@@ -25,7 +26,6 @@
         <Compile Include="CustomerEdit.fs" />
         <Compile Include="CustomerView.fs" />
         <Compile Include="Listings.fs" />
-        <Compile Include="Login.fs" />
         <Compile Include="ChangeHistory.fs" />
         <Compile Include="Client.fs" />
     </ItemGroup>

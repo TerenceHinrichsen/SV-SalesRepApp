@@ -1,6 +1,13 @@
 module SqlScripts
 
 [<Literal>]
+let LoginUser = """DECLARE	@return_value int
+EXEC	@return_value = [dbo].[LoginUser]
+		@Username = @Username,
+		@Password = @Password
+SELECT	'LoginSuccess' = @return_value"""
+
+[<Literal>]
 let SalesRepSelect = """
 SELECT SalesRepId Id
 	 , SalesRepCode Code
@@ -573,7 +580,7 @@ let TwoYearSalesHistory = """
   , SalesValues AS 
   (
   SELECT		  pl.Period
-			  , SUM(ISNULL(csh.ActualQuantity, 0)) Dozens
+			  , SUM(ISNULL(csh.Boxes, 0)) Boxes
 			  , SUM(ISNULL(csh.ActualValue, 0))	 Value
   FROM		  PeriodList			   pl
 	  LEFT JOIN dbo.CustomerSalesHistory csh ON csh.Period = pl.Period
@@ -581,7 +588,7 @@ let TwoYearSalesHistory = """
   GROUP BY	  pl.Period )
 
   SELECT sv.Period
-	   , sv.Dozens
+	   , sv.Boxes
 	   , sv.Value
 	   , AVG(ISNULL(sv.Value,0)) OVER (ORDER BY sv.Period ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) AS QuarterTrend
   FROM SalesValues sv

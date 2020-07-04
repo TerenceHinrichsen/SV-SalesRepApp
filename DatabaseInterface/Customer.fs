@@ -70,7 +70,7 @@ module Customer =
 
     type SalesHistoryPoint = {
       Period: string
-      Dozens: System.Double
+      Boxes: System.Double
       Value : System.Double
       QuarterTrend : System.Double
     }

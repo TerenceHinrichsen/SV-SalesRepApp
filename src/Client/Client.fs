@@ -43,6 +43,7 @@ type State = {
 
 type Message = 
     | DrawerMessage              of Drawer.Message
+    | HomePageMessage            of Drawer.MenuItem
     | ListingsMessage            of Listings.Message
     | CustomerEditMessage        of CustomerEdit.Message
     | CustomerCreateMessage      of CustomerCreate.Message
@@ -58,22 +59,36 @@ type Message =
 
 let init () : State * Cmd<Message> =
     let initialDrawerState, _ = Drawer.init()
-    let initialHomePageState, _ = Home.init()
+    let initialLoginPageState = Login.init
     let initialModel = {
         UserAuthenticated = false
         LoggedOnUser = { UserId = 0; Username = "Unknown"}
         DrawerState = initialDrawerState
-        PageState = HomePageState initialHomePageState
+        PageState = LoginPageState initialLoginPageState
         SearchFields = None
-        Loading = true }
-    initialModel, Cmd.OfAsync.perform Server.api.getAreaList () AreaListUpdated
+        Loading = false }
+    initialModel, Cmd.none
 
 let update (msg : Message) (currentState : State) : State * Cmd<Message> =
   match msg, currentState.PageState with
-  | LoginPageMessage login, _ ->
-    match login with
-    | Login.LoginRequested (x, y) -> {currentState with Loading = true; UserAuthenticated = true }, Cmd.ofMsg UserLoggedOn
-    | _ -> currentState, Cmd.none
+  | HomePageMessage msg, HomePageState state ->
+    match msg with
+    | MenuItem.Home -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.Home)
+    | MenuItem.CustomerCreate -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerCreate)
+    | MenuItem.CustomerEdit -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerEdit)
+    | MenuItem.CustomerView -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerView)
+    | MenuItem.CustomerListings -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerListings)
+    | MenuItem.ChangeHistory -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.ChangeHistory)
+  | LoginPageMessage msg, LoginPageState state ->
+    let nextState, nextCommand = Login.update msg state
+    match nextState.LoginSuccess with
+    | Some success ->
+        if success then 
+          let initHome, _  = Home.init()
+          {currentState with PageState = HomePageState initHome; LoggedOnUser = { UserId = 0; Username = nextState.Username}; UserAuthenticated = true} ,
+          Cmd.OfAsync.perform Server.api.getAreaList () AreaListUpdated
+        else { currentState with PageState = LoginPageState nextState }, Cmd.map Message.LoginPageMessage nextCommand
+    | None -> { currentState with PageState = LoginPageState nextState }, Cmd.map Message.LoginPageMessage nextCommand
   | DrawerMessage drawerMessage, _  -> 
     let nextDrawerState, nextDrawerCommand = Drawer.update drawerMessage currentState.DrawerState
     match nextDrawerState.CurrentMenu with
@@ -240,7 +255,7 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
                                 RepVisitFrequencies = pageState.RepVisitFrequencies
                                 MarketSegments = pageState.MarketSegmentList }},
       Cmd.none
-  | UserLoggedOn , _ -> { currentState with Loading = false} , Cmd.none
+  | UserLoggedOn , _ -> { currentState with Loading = false; UserAuthenticated = true} , Cmd.none
   | _, _ -> currentState, Cmd.none
 
 
@@ -253,11 +268,17 @@ let view (state : State) (dispatch : Message -> unit) =
         AppBar.view state.DrawerState (DrawerMessage >> dispatch)
         Drawer.view state.DrawerState (DrawerMessage >> dispatch)
         Mui.paper [
-            if state.Loading then yield Mui.circularProgress[]
+            if state.Loading then
+                yield Mui.typography [
+                     typography.variant.h5
+                     typography.color.primary
+                     typography.classes.root "AppTitle"
+                     typography.children("Welcome, please wait while application loads") ]
+                yield Mui.circularProgress[]
             else match state.PageState with
                   | HomePageState state ->
                     match state.AreaList with
-                    | Some _ -> yield Home.view state
+                    | Some _ -> yield Home.view state (HomePageMessage >> dispatch)
                     | None -> yield Mui.card [
                       card.variant.outlined
                       card.elevation 5
@@ -272,7 +293,8 @@ let view (state : State) (dispatch : Message -> unit) =
             ]
       ] ]
   | false ->
-    if state.Loading then Mui.linearProgress[ linearProgress.color.secondary ] else Login.view Login.init (LoginPageMessage >> dispatch)
+    if state.Loading then Mui.linearProgress[ linearProgress.color.secondary ]
+    else Login.view (Login.init) (LoginPageMessage >> dispatch)
 
 #if DEBUG
 open Elmish.Debug

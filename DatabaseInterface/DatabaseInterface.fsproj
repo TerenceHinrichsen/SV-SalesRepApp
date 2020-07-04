@@ -7,6 +7,7 @@
     <Compile Include="Helpers.fs" />
     <Compile Include="Configuration.fs" />
     <Compile Include="SqlScripts.fs" />
+    <Compile Include="User.fs" />
     <Compile Include="UserDefinedFields.fs" />
     <Compile Include="Pricelist.fs" />
     <Compile Include="Group.fs" />

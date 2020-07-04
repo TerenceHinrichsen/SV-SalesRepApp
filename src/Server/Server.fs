@@ -48,6 +48,7 @@ let successApi = {
   getLast5Credits                    = fun customerId   -> async { return DbFunctions.fetchLast5CreditNotes customerId } 
   getSalesGraphData                  = fun customerId   -> async { return DbFunctions.fetchSalesHistory customerId }
   createNewCustomerAccount           = fun customerApplicationData -> async {return DbFunctions.newCustomerApplication customerApplicationData }
+  loginUser                          = fun (username, password) -> async {return DbFunctions.loginUser (username, password)}
 }
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =

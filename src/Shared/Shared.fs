@@ -74,7 +74,7 @@ type CustomerDisplayDetail = {
 
 type SalesGraphPoint = {
   Period: string
-  Dozens : double
+  Boxes : double
   Value : double
   QtrTrend: double
 }
@@ -162,4 +162,5 @@ type ISuccessApi =
       getLast5Invoices : int -> Async<TransDetail list>
       getLast5Credits : int -> Async<TransDetail list>
       getSalesGraphData : int -> Async<SalesGraphPoint list>
+      loginUser : (string * string) -> Async<bool>
     }
