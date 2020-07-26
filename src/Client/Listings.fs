@@ -28,6 +28,7 @@ module Listings =
     CurrentCustomerId: int option
     RepVisitFrequencies : string list
     MarketSegments : string list 
+    CustomerSearch : string option
   }
 
   type Message =
@@ -42,6 +43,7 @@ module Listings =
     | ListsUpdated
     | ToggleEditScreen of int
     | ToggleViewScreen of int
+    | CustomerSearchChanged of string
 
   let init () : State * _ =
     { AreaList = []
@@ -61,6 +63,7 @@ module Listings =
       CurrentCustomerId = None
       RepVisitFrequencies = []
       MarketSegments = []
+      CustomerSearch = None
     }, Cmd.none
 
   let update (msg : Message) (currentState : State) : State * _ =
@@ -75,6 +78,7 @@ module Listings =
     | CustomerListReceived s -> { currentState with CustomerList = Some s; isLoading = false}, Cmd.none
     | ToggleEditScreen s -> { currentState with ShowEditScreen = (not currentState.ShowEditScreen); CurrentCustomerId = Some s }, Cmd.none
     | ToggleViewScreen s -> { currentState with ShowViewScreen = (not currentState.ShowViewScreen); CurrentCustomerId = Some s }, Cmd.none
+    | CustomerSearchChanged s -> { currentState with CustomerSearch = Some s }, Cmd.none
     | _ -> currentState, Cmd.none
 
   let selectedArea state =

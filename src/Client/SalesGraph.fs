@@ -18,7 +18,7 @@ module SalesGraph =
             Recharts.legend []
             Recharts.bar [
                 bar.dataKey (fun point -> point.Value)
-                bar.name "Dozens"
+                bar.name "Boxes"
                 bar.fill "#008800"
             ]
             Recharts.line [

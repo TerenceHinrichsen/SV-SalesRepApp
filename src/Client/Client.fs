@@ -124,6 +124,7 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
             Listings.State.CustomerList = None
             Listings.State.CurrentCustomerId = None
             Listings.State.ShowEditScreen = false
+            Listings.State.CustomerSearch = None
             Listings.State.ShowViewScreen = false }, Cmd.none
           | None -> Listings.init()
       { currentState with PageState = ListingPageState listingState; DrawerState = nextDrawerState }, nextDrawerCommand

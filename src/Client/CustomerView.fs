@@ -30,6 +30,7 @@ module CustomerView =
     Sales : SalesGraphPoint list
     SalesGraphLoaded : bool
     VisitForm : CustomerVisit.State
+    CustomerCode : string
    }
 
   type Message =
@@ -40,6 +41,8 @@ module CustomerView =
     | LoadSalesHistory
     | SalesHistoryLoaded of SalesGraphPoint list
     | CustomerVisitMessage of CustomerVisit.Message
+    | CustomerChanged of string
+    | LookupCustomerId
 
   let init () =
     let initialCustomerVisitState, _ = CustomerVisit.init()
@@ -62,6 +65,7 @@ module CustomerView =
       SalesGraphLoading = true
       SalesGraphLoaded = false
       VisitForm = initialCustomerVisitState
+      CustomerCode = ""
     }, Cmd.none
 
   let update (msg: Message) (state: State) =
@@ -97,6 +101,9 @@ module CustomerView =
     | CustomerVisitMessage msg ->
         let (nextState, nextCommand) = CustomerVisit.update msg state.VisitForm
         { state with VisitForm = nextState } , nextCommand
+    | CustomerChanged s -> { state with CustomerCode = s }, Cmd.none
+    | LookupCustomerId -> { state with IsLoading = true }, Cmd.OfAsync.perform Server.api.getCustomerIdFromCode state.CustomerCode LoadCustomer
+
 
   let tableRows (list : TransDetail list) =
     list |> List.map ( fun x -> Mui.tableRow [
@@ -108,8 +115,10 @@ module CustomerView =
   let view (state : State) (dispatch : Message -> unit) =
     match state.IsLoading with
     | true -> Mui.circularProgress [ circularProgress.size 50; circularProgress.color.secondary ]
-    | false -> 
-              Mui.paper [
+    | false ->
+        match state.CurrentCustomerId with
+        | Some customerId ->
+            Mui.paper [
                 Mui.expansionPanel [
                   expansionPanel.variant.outlined
                   expansionPanel.defaultExpanded true
@@ -231,4 +240,11 @@ module CustomerView =
                           ] ] ] ]
                   ] ]
               ]
+        | None -> Mui.card [
+            card.children [
+                  Mui.container [container.children [ if state.IsLoading then Mui.linearProgress[] else Mui.hidden [hidden.xsUp true] ] ]
+                  FormFields.textInput "Customer code" state.CustomerCode (fun x -> dispatch (CustomerChanged x))
+                  Buttons.primaryButtonLarge "Load customer" (fun _ -> dispatch LookupCustomerId)
+        ]
+      ]
 

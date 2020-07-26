@@ -72,6 +72,14 @@ module Home =
                buttonGroup.fullWidth true
                buttonGroup.classes.root "Padded"
                buttonGroup.children [
+                Buttons.primaryButtonLarge "View customer detail" (fun _ -> dispatch Drawer.MenuItem.CustomerCreate)         
+                ]]
+              Mui.buttonGroup [
+               buttonGroup.size.large
+               buttonGroup.orientation.vertical
+               buttonGroup.fullWidth true
+               buttonGroup.classes.root "Padded"
+               buttonGroup.children [
                 Buttons.primaryButtonLarge "Edit existing customer" (fun _ -> dispatch Drawer.MenuItem.CustomerEdit)           
                 ]]
               Mui.buttonGroup [
@@ -81,37 +89,7 @@ module Home =
                buttonGroup.classes.root "Padded"
                buttonGroup.children [
                 Buttons.primaryButtonLarge "Create new TODO" (fun _ -> dispatch Drawer.MenuItem.ChangeHistory)       
-                ]](*          Mui.typography(
-                sprintf "Number of areas loaded: %s" (
-                    match state.AreaList with
-                    | Some x -> x.Length.ToString()
-                    | None -> "No areas loaded"))
-              Mui.typography(
-                sprintf "Number of groups loaded: %s" (
-                    match state.GroupList with
-                    | Some x -> x.Length.ToString()
-                    | None -> "No groups loaded"))
-              Mui.typography(
-                sprintf "Number of pricelists loaded: %s" (
-                    match state.PriceListList with
-                    | Some x -> x.Length.ToString()
-                    | None -> "No pricelists loaded"))
-              Mui.typography(
-                sprintf "Number of sales reps loaded: %s" (
-                    match state.SalesRepList with
-                    | Some x -> x.Length.ToString()
-                    | None -> "No Sales reps loaded"))
-              Mui.typography(
-                sprintf "Number of market segments loaded: %s" (
-                    match state.SalesRepList with
-                    | Some x -> x.Length.ToString()
-                    | None -> "No market segments loaded"))
-              Mui.typography(
-                sprintf "Number of rep visit frequencies loaded: %s" (
-                    match state.RepVisitFrequencies with
-                    | Some x -> x.Length.ToString()
-                    | None -> "No rep visit frequencies loaded"))
-                    *)
+                ]]
         ]
       ]
     ]

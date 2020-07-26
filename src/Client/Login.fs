@@ -74,7 +74,7 @@ module Login =
                   textField.error (if state.StatusMessage <> "" then true else false)
                   textField.required true ] ] ]
             Mui.formControl [
-              formControl.fullWidth true
+              formControl.fullWidth true             
               formControl.margin.normal
               formControl.children [
                 Mui.button [
