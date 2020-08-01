@@ -88,6 +88,7 @@ module CustomerEdit =
     | MarketSegmentSelected of string
     | SaveChangesToDatabase
     | SaveChangesCompleted of string
+    | ExceptionReceived of System.Exception
 
   let init () : State * _ =
     { AreaList = []
@@ -156,7 +157,7 @@ module CustomerEdit =
     | RepVisitFrequencySelected s -> {currentState with SelectedRepVisitFrequency = s}, Cmd.none
     | MarketSegmentSelected s -> {currentState with SelectedMarketSegment = s }, Cmd.none
     | SaveChangesToDatabase -> currentState,
-                                Cmd.OfAsyncImmediate.perform Server.api.updateCustomerMaster {
+                                Cmd.OfAsyncImmediate.either Server.api.updateCustomerMaster {
                                       CustomerId = currentState.CurrentCustomerId |> Option.defaultValue 0
                                       CustomerName = currentState.DetailForm.CustomerName
                                       GroupId = currentState.SelectedGroup |> Option.defaultValue 0
@@ -173,8 +174,9 @@ module CustomerEdit =
                                       DeliveryEmail =  currentState.DetailForm.DeliveryEmail
                                       MarketSegment =  currentState.SelectedMarketSegment
                                       RepVisitFreq =  currentState.SelectedRepVisitFrequency
-                                   } SaveChangesCompleted
-    | SaveChangesCompleted s -> { currentState with ResponseFromDatabase = Some s }, Cmd.none
+                                   } SaveChangesCompleted ExceptionReceived
+    | SaveChangesCompleted s -> { currentState with ResponseFromDatabase = Some s }, Toast.successMessage 5000 "Changes saved to database"
+    | ExceptionReceived exn -> currentState, Toast.errorMessage 5000 exn
     | _ -> currentState, Cmd.none
 
   let selectedArea state =
@@ -342,7 +344,6 @@ module CustomerEdit =
                                               prop.key option
                                               prop.text option ] )  ] ] ) ] ] ]
             Buttons.secondaryButtonLarge "SAVE CHANGES TO EVOLUTION" (fun _ -> dispatch SaveChangesToDatabase)
-            Mui.typography (if state.ResponseFromDatabase.IsNone then "" else sprintf "%A" state.ResponseFromDatabase )
           ] ] ] ]
     | None ->
       Mui.card [

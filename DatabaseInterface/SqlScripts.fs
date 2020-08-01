@@ -128,6 +128,57 @@ ORDER BY CustomerAccountNumber ;
 """
 
 [<Literal>]
+let customerSearchString = """
+SELECT c.CustomerId
+	 , c.CustomerAccountNumber
+	 , c.CustomerAccountName
+	 , c.CustomerAccountDescription
+	 , c.AreaId
+	 , c.AreaCode
+	 , c.AreaDescription
+	 , c.GroupId
+	 , c.GroupCode
+	 , c.GroupDescription
+	 , c.PriceListId
+	 , c.PriceListName
+	 , c.PriceListDescription
+	 , c.CustomerIsOnHold
+	 , c.Physical
+	 , c.Physical2
+	 , c.Suburb
+	 , c.Physical4
+	 , c.GPS
+	 , c.PhysicalPC
+	 , c.Telephone
+	 , c.Cellphone
+	 , c.Fax
+	 , c.MainAccLink
+	 , c.udARLastVisit
+	 , c.IsChildAccount
+	 , c.MasterAccountNumber
+	 , c.MasterAccountName
+	 , c.AgeingTermCode
+	 , c.AgeingTermDescription
+	 , c.RepVisitFrequency
+	 , c.Delivered_To DeliveryContact
+	 , c.Contact_Person ContactPerson
+	 , c.SalesRepId
+	 , c.SalesRepCode
+	 , c.SalesRepName
+	 , c.EMail
+	 , c.ucARDeliveryEmail DeliveryEmail
+	 , c.ulARMarketSegment MarketSegment
+FROM   dbo.Customer c
+WHERE CustomerAccountName LIKE @Search
+OR CustomerAccountNumber LIKE @Search 
+OR Physical LIKE @Search
+OR Suburb LIKE @Search
+OR Delivered_To LIKE @Search
+OR Contact_Person LIKE @Search
+ORDER BY CustomerAccountNumber ;
+"""
+
+[<Literal>]
 let CustomerListArea = """
 SELECT c.CustomerId
 	 , c.CustomerAccountNumber
@@ -484,8 +535,11 @@ INSERT INTO dbo.ChangeLog
 ( CustomerId , ChangeText )
 VALUES (@CustomerId, @ChangeText)
 
-UPDATE dbo.CustomerAlter
-SET   CustomerAccountName = @CustomerName
+INSERT INTO dbo.CustomerAlter
+(CustomerId, CustomerAccountName, GroupId, RepId, PriceListId, Contact_Person, Delivered_To, Telephone, Cellphone, Email, Physical, Physical2, Suburb, ucARDeliveryEmail, ulARMarketSegment, RepVisitFrequency)
+SELECT   
+	 @CustomerId
+	, CustomerAccountName = @CustomerName
 	, GroupId = @GroupId
 	, RepId = @RepId
 	, PriceListId = @PricelistId
@@ -500,7 +554,7 @@ SET   CustomerAccountName = @CustomerName
 	, ucARDeliveryEmail = @DeliveryEmail
 	, ulARMarketSegment = @MarketSegment
 	, RepVisitFrequency = @RepVisitFreq
-WHERE CustomerId = @CustomerId
+
   """
 
 let CreateCustomer =

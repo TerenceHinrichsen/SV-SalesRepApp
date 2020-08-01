@@ -153,7 +153,7 @@ type ISuccessApi =
       getCustomerListByArea : int -> Async<Customer list>
       getCustomerListBySalesRep : int -> Async<Customer list>
       getCustomerListByGroup : int -> Async<Customer list>
-      getCustomerListByOneOfRepGroupArea : (int option * int option * int option) -> Async<Customer list>
+      getCustomerListByOneOfRepGroupArea : (int option * int option * int option * string option) -> Async<Customer list>
       getMarketSegments : unit -> Async<string list>
       getRepVisitFrequencies : unit -> Async<string list>
       getCustomerViewDetail : int -> Async<CustomerDisplayDetail>

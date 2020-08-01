@@ -102,11 +102,13 @@ module Customer =
 
   let FetchListBasedOnSearch search =
     registerOptionTypes()
-    let sql = SqlScripts.customerDetailSelect
+    let sql = SqlScripts.customerSearchString
     let connection = new SqlConnection(sqlConnectionString)
     do connection.Open()
     let transaction = connection.BeginTransaction("ReadOneCustomers")
-    let parameters = dict ["Search" => search]
+    let wildcardSearch = sprintf "%%%s%%" search
+    let parameters = dict ["Search" => wildcardSearch]
+    printfn "%s" wildcardSearch
     connection.Query<Customer>(sql, parameters, transaction = transaction) |> List.ofSeq
 
   let FetchListBasedOnSalesRep salesRepId =
@@ -178,30 +180,33 @@ module Customer =
                            "Group" => groupId ]
     connection.Query<Customer>(sql, parameters, transaction = transaction) |> List.ofSeq
 
-  let FetchListBasedOn_EITHER_AreaGroupRep areaId repId groupId =
-    match areaId, repId, groupId with
-    | Some area, Some rep, Some group ->
+  let FetchListBasedOn_EITHER_AreaGroupRep areaId repId groupId search =
+    match areaId, repId, groupId, search with
+    | Some area, Some rep, Some group, _ ->
       printfn "All three, area & rep & group"
       FetchListBasedOnAreaGroupRep area rep group
-    | Some area, Some rep, None ->
+    | Some area, Some rep, None, _ ->
       printfn "Only Area and Rep"
       FetchListBasedOnAreaRep area rep
-    | Some area, None, Some group ->
+    | Some area, None, Some group, _ ->
       printfn "Area and group"
       FetchListBasedOnAreaGroup area group
-    | Some area, None, None ->
+    | Some area, None, None, _ ->
       printfn "Only area"
       FetchListBasedOnArea area
-    | None, Some rep, Some group ->
+    | None, Some rep, Some group, _ ->
       printfn "Rep and Group"
       FetchListBasedOnRepGroup rep group
-    | None, Some rep, None ->
+    | None, Some rep, None, _ ->
       printfn "Only rep"
       FetchListBasedOnSalesRep rep
-    | None, None, Some group ->
+    | None, None, Some group, _ ->
       printfn "Only group"
       FetchListBasedOnGroup group
-    | None, None, None ->
+    | None, None, None, Some search ->
+      printf "Search string"
+      FetchListBasedOnSearch search
+    | None, None, None, _ ->
       printfn "No parameters to query database!"
       failwith "Must provide at least one parameter"
 

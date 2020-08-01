@@ -96,9 +96,9 @@ module DbFunctions =
   let getCustomerBySearch searchString =
     Customer.FetchListBasedOnSearch searchString |> List.map(fun x -> fromDatabase x)
 
-  let getCustomerByCriteria area rep group =
+  let getCustomerByCriteria area rep group search =
     printfn "Calling database function with Area: %A Rep: %A Group: %A" area rep group
-    Customer.FetchListBasedOn_EITHER_AreaGroupRep area rep group |> List.map(fun x -> fromDatabase x)
+    Customer.FetchListBasedOn_EITHER_AreaGroupRep area rep group search |> List.map(fun x -> fromDatabase x)
 
   let getCustomerIdForCode customerCode =
     let answer = Customer.LookupCustomerId customerCode

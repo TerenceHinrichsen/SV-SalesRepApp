@@ -87,7 +87,7 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
           let initHome, _  = Home.init()
           {currentState with PageState = HomePageState initHome; LoggedOnUser = { UserId = 0; Username = nextState.Username}; UserAuthenticated = true} ,
           Cmd.OfAsync.perform Server.api.getAreaList () AreaListUpdated
-        else { currentState with PageState = LoginPageState nextState }, Cmd.map Message.LoginPageMessage nextCommand
+        else { currentState with PageState = LoginPageState { nextState with LoginSuccess = None }}, Toast.errorMessage 5000 (System.Exception("Login failed"))
     | None -> { currentState with PageState = LoginPageState nextState }, Cmd.map Message.LoginPageMessage nextCommand
   | DrawerMessage drawerMessage, _  -> 
     let nextDrawerState, nextDrawerCommand = Drawer.update drawerMessage currentState.DrawerState

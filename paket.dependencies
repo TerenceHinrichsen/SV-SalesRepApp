@@ -1,3 +1,7 @@
+source https://www.nuget.org/api/v2
+
+nuget Elmish.Toastr
+nuget Feliz.MaterialUI
 group Server
     source https://api.nuget.org/v3/index.json
     framework: netcoreapp3.0
@@ -38,4 +42,3 @@ group Build
     nuget Fake.Core.Trace
     nuget Fake.IO.Zip
     github CompositionalIT/fshelpers src/FsHelpers/ArmHelper/ArmHelper.fs
-

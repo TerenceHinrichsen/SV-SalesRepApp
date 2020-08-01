@@ -44,6 +44,7 @@ module Listings =
     | ToggleEditScreen of int
     | ToggleViewScreen of int
     | CustomerSearchChanged of string
+    | ExceptionReceived of System.Exception
 
   let init () : State * _ =
     { AreaList = []
@@ -74,11 +75,14 @@ module Listings =
     | AreaCodeSelected  s ->  { currentState with SelectedArea = Some s }, Cmd.none
     | SalesRepSelected  s ->  { currentState with SelectedRep = Some s }, Cmd.none
     | GroupSelected     s ->  { currentState with SelectedGroup = Some s }, Cmd.none
-    | SearchForCustomers  ->  {currentState with isLoading = true }, Cmd.OfAsync.perform Server.api.getCustomerListByOneOfRepGroupArea (currentState.SelectedArea, currentState.SelectedRep, currentState.SelectedGroup) CustomerListReceived
+    | SearchForCustomers  ->
+        {currentState with isLoading = true },
+            Cmd.OfAsync.either Server.api.getCustomerListByOneOfRepGroupArea (currentState.SelectedArea, currentState.SelectedRep, currentState.SelectedGroup, currentState.CustomerSearch) CustomerListReceived ExceptionReceived
     | CustomerListReceived s -> { currentState with CustomerList = Some s; isLoading = false}, Cmd.none
     | ToggleEditScreen s -> { currentState with ShowEditScreen = (not currentState.ShowEditScreen); CurrentCustomerId = Some s }, Cmd.none
     | ToggleViewScreen s -> { currentState with ShowViewScreen = (not currentState.ShowViewScreen); CurrentCustomerId = Some s }, Cmd.none
     | CustomerSearchChanged s -> { currentState with CustomerSearch = Some s }, Cmd.none
+    | ExceptionReceived exn -> { currentState with isLoading = false }, Toast.errorMessage 3000 exn 
     | _ -> currentState, Cmd.none
 
   let selectedArea state =
@@ -197,6 +201,25 @@ module Listings =
                                                 prop.key option.Id
                                                 prop.text option.Code ] )
                         listItemText.secondary option.Description ] ] ) ]
+              ] ] ]
+            ]
+        ]
+        Mui.grid [
+          grid.item true
+          grid.xs._12
+          grid.spacing._0
+          grid.children [
+            Mui.card [
+              Mui.cardContent [
+              cardContent.children [
+                Mui.textField [
+                  textField.label "Customer search"
+                  textField.fullWidth true
+                  textField.variant.outlined
+                  textField.helperText "Enter any portion of text to search for. Fields searched are customer code, name and contact"
+                  textField.value state.CustomerSearch
+                  textField.onChange (fun t -> dispatch <| CustomerSearchChanged t)
+                ]
               ] ] ]
             ]
         ]
