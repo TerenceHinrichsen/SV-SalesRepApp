@@ -51,6 +51,7 @@ let successApi = {
   loginUser                          = fun (username, password) -> async {return DbFunctions.loginUser (username, password)}
   addNewTodo                         = fun (todo) -> async { return DbFunctions.addTodo todo}
   getCustomerSpecials                = fun customerId -> async { return DbFunctions.fetchCustomerSpecials customerId }
+  getProductMix                      = fun customerId -> async { return DbFunctions.fetchProductMix customerId }
 }
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =

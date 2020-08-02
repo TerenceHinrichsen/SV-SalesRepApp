@@ -617,6 +617,17 @@ LEFT JOIN LastInvoiceByCustomer li ON c.CustomerId = li.CustomerId
 WHERE c.CustomerId = @customerId
   """
 
+let CustomerProductMix =
+    """
+        SELECT	 csh.cSimpleCode ProductCode
+	           , SUM(csh.Boxes) TotalBoxes
+        FROM	 dbo.CustomerSalesHistory csh
+        WHERE	 csh.DCLink = @CustomerId
+		         AND csh.TxDate >= DATEADD(WEEK, -8, GETDATE())
+        GROUP BY csh.cSimpleCode
+        HAVING	 SUM(csh.Boxes) > 0;
+   """
+
 let Last5Invoices = """
 SELECT TOP 5
 		 ct.Reference Number

@@ -86,6 +86,11 @@ module Customer =
       Value : System.Double
       QuarterTrend : System.Double
     }
+
+    type CustomerProductMixDataPoint = {
+      ProductCode : string
+      TotalBoxes:  Double
+    }
   let FetchAllFromDatabase =
     registerOptionTypes()
     let sql = SqlScripts.CustomerListSelect
@@ -93,6 +98,16 @@ module Customer =
     do connection.Open()
     let transaction = connection.BeginTransaction("ReadAllCustomers")
     connection.Query<Customer>(sql, transaction = transaction) |> List.ofSeq
+
+  let FetchProductMix customerId =
+    registerOptionTypes()
+    let sql = SqlScripts.CustomerProductMix
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("LookupCustomerId")
+    let parameters = dict ["CustomerId" => customerId ]
+    connection.Query<CustomerProductMixDataPoint>(sql, parameters ,transaction = transaction) |> List.ofSeq
+
 
   let LookupCustomerId customerCode =
     registerOptionTypes()

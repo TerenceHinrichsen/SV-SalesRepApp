@@ -9,6 +9,7 @@ module CustomerView =
   open Fable.MaterialUI
   open Shared
   open API
+  open Feliz.Recharts
 
   type State = {
     CurrentCustomerId : int option
@@ -34,6 +35,7 @@ module CustomerView =
     TodoState : Todo option
     ShowToDoScreen : bool
     CustomerSpecials : CustomerSpecial list
+    ProductMix : ProductMixDatapoint list
    }
 
   type Message =
@@ -56,6 +58,9 @@ module CustomerView =
     | MessageChanged of string
     | LoadSpecials of CustomerSpecial list
     | FetchSpecials
+    | FetchProductMix
+    | LoadProductMix of ProductMixDatapoint list
+    
 
   let init () =
     let initialCustomerVisitState, _ = CustomerVisit.init()
@@ -82,6 +87,7 @@ module CustomerView =
       TodoState = None
       ShowToDoScreen = false
       CustomerSpecials = List.Empty
+      ProductMix = List.empty
     }, Cmd.none
 
   let update (msg: Message) (state: State) =
@@ -114,8 +120,16 @@ module CustomerView =
         printfn "Not necessary"
         state, Cmd.none
     | SalesHistoryLoaded list -> { state with Sales = list; SalesGraphLoaded = true; SalesGraphLoading = false },Cmd.none
-    | FetchSpecials -> state, Cmd.OfAsync.perform Server.api.getCustomerSpecials (state.CurrentCustomerId |> Option.defaultValue 0) LoadSpecials
-    | LoadSpecials customerSpecials -> {state with CustomerSpecials = customerSpecials}, Toast.infoMessage 2000 "Finished loading specials"
+    | FetchSpecials ->
+        match state.CustomerSpecials.Length with
+        | 0 -> state, Cmd.OfAsync.perform Server.api.getCustomerSpecials (state.CurrentCustomerId |> Option.defaultValue 0) LoadSpecials
+        | _ -> state, Cmd.none
+    | LoadSpecials customerSpecials -> {state with CustomerSpecials = customerSpecials}, Cmd.ofMsg FetchProductMix
+    | FetchProductMix ->
+        match state.ProductMix.Length with
+        | 0 -> state, Cmd.OfAsync.perform Server.api.getProductMix (state.CurrentCustomerId |> Option.defaultValue 0) LoadProductMix
+        | _ -> state, Cmd.none
+    | LoadProductMix productMix -> { state with ProductMix = productMix }, Toast.infoMessage 2000 "Specials loaded"
     | CustomerVisitMessage msg ->
         let (nextState, nextCommand) = CustomerVisit.update msg state.VisitForm
         { state with VisitForm = nextState } , nextCommand
@@ -162,6 +176,28 @@ module CustomerView =
         Mui.tableCell (x.ContractType)
       ]
     ])
+
+  type PieSlice = { name: string; value : int }
+
+  let productMixGraph ( list : ProductMixDatapoint list) =
+    let cells =
+        list
+        |> List.map (fun x -> { name = x.ProductCode; value = x.TotalBoxes |> int})
+
+    Recharts.pieChart [
+      pieChart.width 800
+      pieChart.height 400
+      pieChart.children [
+        Recharts.pie [
+          pie.data cells
+          pie.dataKey (fun point -> point.value)
+          pie.cx 230
+          pie.cy 200
+          pie.label true
+          pie.fill  "#82ca9d"
+        ]
+      ]
+    ]
 
   let view (state : State) (dispatch : Message -> unit) =
     Mui.paper[
@@ -282,7 +318,7 @@ module CustomerView =
                           expansionPanelDetails.classes.root "wrappingContainer"
                           expansionPanelDetails.children [
                             Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
-                              card.children [ "Show which products where purchased and their average over last 8 weeks"] ]
+                              card.children [ productMixGraph state.ProductMix] ]
                             Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
                               card.children [
                                             Mui.table [

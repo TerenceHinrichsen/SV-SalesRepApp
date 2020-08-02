@@ -171,6 +171,13 @@ module DbFunctions =
       SalesGraphPoint.QtrTrend = x.QuarterTrend
     })
 
+  let fetchProductMix customerId =
+    Customer.FetchProductMix customerId
+    |> List.map (fun x ->  {
+        ProductCode = x.ProductCode
+        TotalBoxes = x.TotalBoxes
+    })
+
   let newCustomerApplication newAccDetail =
     Customer.newAccountApplication
       newAccDetail.CustomerName

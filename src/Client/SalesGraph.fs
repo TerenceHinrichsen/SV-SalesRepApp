@@ -15,7 +15,7 @@ module SalesGraph =
             Recharts.xAxis [ xAxis.dataKey (fun point -> point.Period) ]
             Recharts.yAxis [ ]
             Recharts.tooltip [ ]
-            Recharts.legend []
+//            Recharts.legend []
             Recharts.bar [
                 bar.dataKey (fun point -> point.Boxes)
                 bar.name "Boxes"

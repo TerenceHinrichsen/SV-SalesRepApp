@@ -17,6 +17,11 @@ type Todo = {
   PromisedDate: System.DateTime
 }
 
+type ProductMixDatapoint = {
+  ProductCode : string
+  TotalBoxes: double
+}
+
 type CustomerSpecial = {
     CustomerId : int
     ItemCode : string
@@ -183,4 +188,5 @@ type ISuccessApi =
       loginUser : (string * string) -> Async<bool>
       addNewTodo : Todo -> Async<string>
       getCustomerSpecials : int -> Async<CustomerSpecial list>
+      getProductMix : int -> Async<ProductMixDatapoint list>
     }
