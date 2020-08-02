@@ -557,6 +557,22 @@ SELECT
 
   """
 
+let CreateNewTodo =
+    """
+INSERT INTO dbo.Todo
+(
+	CustomerId
+  , Assignee
+  , Message
+  , PromisedDate
+)
+SELECT
+	@CustomerId		
+  , @Assignee	
+  , @Message	
+  , @PromisedDate
+    """
+
 let CreateCustomer =
   """
 INSERT INTO dbo.ChangeLog
@@ -605,7 +621,7 @@ let Last5Invoices = """
 SELECT TOP 5
 		 ct.Reference Number
 	   , FORMAT(ct.TransactionDate, 'yyyy-MM-dd') TransactionDate
-	   , FORMAT(ct.Debit,'0 000.00') Total
+	   , FORMAT(ct.Debit,'# #00.00') Total
 FROM	 dbo.CustomerTransactions ct
 WHERE	 ct.CustomerId = @customerId
 		 AND ct.Debit > 0
@@ -617,7 +633,7 @@ let Last5Credits = """
 SELECT TOP 5
 		 ct.Reference Number
 	   , FORMAT(ct.TransactionDate, 'yyyy-MM-dd') TransactionDate
-	   , FORMAT(ct.Credit,'0 000.00') Total
+	   , FORMAT(ct.Credit,'# #00.00') Total
 FROM	 dbo.CustomerTransactions ct
 WHERE	 ct.CustomerId = @customerId
 		 AND ct.Credit > 0
@@ -644,6 +660,21 @@ let TwoYearSalesHistory = """
   SELECT sv.Period
 	   , sv.Boxes
 	   , sv.Value
-	   , AVG(ISNULL(sv.Value,0)) OVER (ORDER BY sv.Period ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) AS QuarterTrend
+	   , AVG(ISNULL(sv.Boxes,0)) OVER (ORDER BY sv.Period ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) AS QuarterTrend
   FROM SalesValues sv
+"""
+
+let customerCurrentSpecials = """
+SELECT        c.CustomerId
+            , acc.ItemCode
+			, acc.ItemDescription
+			, acc.DozenPrice
+			, acc.UnitPrice
+			, acc.EffectiveDate
+			, acc.ExpiryDate
+			, acc.ContractType
+FROM		  dbo.Customer				  c
+	LEFT JOIN dbo.ActiveCustomerContracts acc ON acc.CustomerId = c.CustomerId
+												 OR acc.CustomerGroupId = c.GroupId
+WHERE		  c.CustomerId = @CustomerId;
 """

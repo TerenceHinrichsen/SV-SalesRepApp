@@ -10,13 +10,6 @@ module CustomerView =
   open Shared
   open API
 
-  type Todo = {
-    CustomerId : int
-    Assignee : string
-    Message : string
-    PromisedDate: System.DateTime
-  }
-
   type State = {
     CurrentCustomerId : int option
     Name : string
@@ -40,6 +33,7 @@ module CustomerView =
     CustomerCode : string
     TodoState : Todo option
     ShowToDoScreen : bool
+    CustomerSpecials : CustomerSpecial list
    }
 
   type Message =
@@ -54,12 +48,14 @@ module CustomerView =
     | LookupCustomerId
     | AddTodo of int
     | SaveToDo
-    | TodoSaved
+    | TodoSaved of string
     | ExceptionReceived of System.Exception
     | CloseToDo
     | AssigneeChanged of string
     | PromisedDateChanged of string
     | MessageChanged of string
+    | LoadSpecials of CustomerSpecial list
+    | FetchSpecials
 
   let init () =
     let initialCustomerVisitState, _ = CustomerVisit.init()
@@ -85,6 +81,7 @@ module CustomerView =
       CustomerCode = ""
       TodoState = None
       ShowToDoScreen = false
+      CustomerSpecials = List.Empty
     }, Cmd.none
 
   let update (msg: Message) (state: State) =
@@ -117,6 +114,8 @@ module CustomerView =
         printfn "Not necessary"
         state, Cmd.none
     | SalesHistoryLoaded list -> { state with Sales = list; SalesGraphLoaded = true; SalesGraphLoading = false },Cmd.none
+    | FetchSpecials -> state, Cmd.OfAsync.perform Server.api.getCustomerSpecials (state.CurrentCustomerId |> Option.defaultValue 0) LoadSpecials
+    | LoadSpecials customerSpecials -> {state with CustomerSpecials = customerSpecials}, Toast.infoMessage 2000 "Finished loading specials"
     | CustomerVisitMessage msg ->
         let (nextState, nextCommand) = CustomerVisit.update msg state.VisitForm
         { state with VisitForm = nextState } , nextCommand
@@ -128,8 +127,8 @@ module CustomerView =
                                             Assignee = ""
                                             Message = ""
                                             PromisedDate = System.DateTime.Now } }, Cmd.none
-    | SaveToDo -> { state with ShowToDoScreen = false }, Cmd.none // send to DB
-    | TodoSaved -> { state with TodoState = None }, Toast.successMessage 5000 "Saved..."
+    | SaveToDo -> { state with ShowToDoScreen = false }, Cmd.OfAsync.either Server.api.addNewTodo state.TodoState.Value TodoSaved ExceptionReceived
+    | TodoSaved string -> { state with TodoState = None }, Toast.successMessage 5000 string
     | ExceptionReceived exn -> state, Toast.errorMessage 5000 exn
     | CloseToDo -> { state with ShowToDoScreen = false },  Cmd.none
     | AssigneeChanged s ->
@@ -150,30 +149,40 @@ module CustomerView =
       tableRow.children [
         Mui.tableCell (x.Date |> Option.defaultValue "")
         Mui.tableCell (x.Number |> Option.defaultValue "")
-        Mui.tableCell (x.Total |> string) ] ] )
+        Mui.tableCell [tableCell.align.right; tableCell.children (x.Total |> string)  ] ] ] )
+
+  let specialsRow ( list : CustomerSpecial list) =
+    list
+    |> List.sortBy (fun x -> x.ItemCode)
+    |> List.map (fun x -> Mui.tableRow [
+      tableRow.children [
+        Mui.tableCell (x.ItemDescription)
+        Mui.tableCell (x.EffectiveDate.ToShortDateString())
+        Mui.tableCell (x.DozenPrice.ToString())
+        Mui.tableCell (x.ContractType)
+      ]
+    ])
 
   let view (state : State) (dispatch : Message -> unit) =
     Mui.paper[
       paper.children [
         Mui.dialog [
-         dialog.open' state.ShowToDoScreen
-         dialog.maxWidth.xl
-         dialog.onBackdropClick (fun _ -> dispatch CloseToDo)
-         dialog.children [
+          dialog.open' state.ShowToDoScreen
+          dialog.maxWidth.xl
+          dialog.onBackdropClick (fun _ -> dispatch CloseToDo)
+          dialog.children [
             Mui.dialogContent [
-                match state.TodoState with
-                | Some todoState -> 
-                    Mui.formControl [
-                        Mui.textField [textField.type' "date";  textField.label "Promised date"]
-                        Mui.textField [textField.label "Responsible person"; textField.value todoState ;textField.onChange (AssigneeChanged >> dispatch) ]
-                        Mui.textField [textField.label "Message" ;textField.multiline true] ]
-                | None -> Mui.typography "Could not load todo" ]
+              match state.TodoState with
+              | Some todoState -> 
+                  Mui.formControl [
+                    Mui.textField [textField.type' "date"; textField.onChange (PromisedDateChanged >> dispatch)]
+                    Mui.textField [textField.label "Responsible person"; textField.value todoState.Assignee ;textField.onChange (AssigneeChanged >> dispatch) ]
+                    Mui.textField [textField.label "Message" ;textField.multiline true; textField.rows 4; textField.onChange(MessageChanged >> dispatch)] ]
+              | None -> Mui.typography "Could not load todo" ]
             Mui.dialogActions [
             Buttons.primaryButton 1 "Save" (fun _ -> dispatch SaveToDo)
             Buttons.secondaryButton 2 "Cancel" (fun _ -> dispatch CloseToDo)
-            ]
-         ]
-        ]
+            ] ] ]
 
         match state.IsLoading with
         | true -> Mui.circularProgress [ circularProgress.size 50; circularProgress.color.secondary ]
@@ -263,7 +272,8 @@ module CustomerView =
 
                     Mui.expansionPanel [
                       expansionPanel.variant.outlined
-                      expansionPanel.defaultExpanded true
+                      prop.onClick(fun x -> dispatch FetchSpecials)
+                      expansionPanel.defaultExpanded false
                       expansionPanel.children [
                         Mui.expansionPanelSummary [
                           expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")
@@ -276,13 +286,7 @@ module CustomerView =
                             Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
                               card.children [
                                             Mui.table [
-                                              table.children [
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Expiry date"; Mui.tableCell "2020-01-01"] ]
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Effective from" ; Mui.tableCell "2020-02-02" ] ]
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Product" ; Mui.tableCell  "X30"] ]
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Price (dozen)" ; Mui.tableCell "R 12.30" ] ]
-                                              ] ]
-                                            ]
+                                              table.children (specialsRow state.CustomerSpecials)  ] ]
                                           ]
                               ] ] ] ]
 

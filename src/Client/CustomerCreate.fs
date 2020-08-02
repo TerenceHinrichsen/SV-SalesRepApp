@@ -187,7 +187,7 @@ module CustomerCreate =
                                       RepVisitFreq =  currentState.SelectedRepVisitFrequency
                                       AreaId = currentState.SelectedArea |> Option.defaultValue 0
                                    } SaveChangesCompleted
-    | SaveChangesCompleted s -> { currentState with ResponseFromDatabase = Some s }, Cmd.none
+    | SaveChangesCompleted s -> { currentState with ResponseFromDatabase = Some s }, Toast.successMessage 5000 "Request saved"
     | _ -> currentState, Cmd.none
 
   let selectedArea state =
@@ -353,5 +353,4 @@ module CustomerCreate =
                                             prop.key option
                                             prop.text option ] )  ] ] ) ] ] ]
           Buttons.secondaryButtonLarge "SAVE CHANGES TO EVOLUTION" (fun _ -> dispatch SaveChangesToDatabase)
-          Mui.typography (if state.ResponseFromDatabase.IsNone then "" else sprintf "%A" state.ResponseFromDatabase )
         ] ] ] ]

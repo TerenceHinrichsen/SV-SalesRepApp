@@ -10,6 +10,24 @@ type User = {
   Username: string
   }
 
+type Todo = {
+  CustomerId : int
+  Assignee : string
+  Message : string
+  PromisedDate: System.DateTime
+}
+
+type CustomerSpecial = {
+    CustomerId : int
+    ItemCode : string
+    ItemDescription : string
+    DozenPrice : decimal
+    UnitPrice : decimal
+    EffectiveDate : System.DateTime
+    ExpiryDate : System.DateTime
+    ContractType:  string
+}
+
 type Customer = {
   CustomerId: int
   CustomerAccountNumber : string
@@ -163,4 +181,6 @@ type ISuccessApi =
       getLast5Credits : int -> Async<TransDetail list>
       getSalesGraphData : int -> Async<SalesGraphPoint list>
       loginUser : (string * string) -> Async<bool>
+      addNewTodo : Todo -> Async<string>
+      getCustomerSpecials : int -> Async<CustomerSpecial list>
     }

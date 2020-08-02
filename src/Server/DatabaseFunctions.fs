@@ -125,6 +125,9 @@ module DbFunctions =
       updateData.MarketSegment
       updateData.RepVisitFreq
 
+  let addTodo (todo: Todo) =
+    Todo.CreateNew todo.CustomerId todo.Assignee todo.Message todo.PromisedDate
+
   let fetchLast5Invoices customerId =
     Customer.fetchLast5Invoices customerId
     |> List.map ( fun x ->
@@ -190,3 +193,16 @@ module DbFunctions =
       newAccDetail.GPS
       newAccDetail.PostCode
       newAccDetail.Fax
+
+  let fetchCustomerSpecials customerId =
+    Customer.fetchSpecials customerId
+    |> List.map (fun x -> {
+          CustomerId = x.CustomerId |> Option.defaultValue 0
+          ExpiryDate = x.ExpiryDate |> Option.defaultValue System.DateTime.Now
+          EffectiveDate = x.EffectiveDate |> Option.defaultValue System.DateTime.Now
+          ItemCode = x.ItemCode |> Option.defaultValue "Error loading data"
+          ItemDescription = x.ItemDescription |> Option.defaultValue "Error loading data"
+          UnitPrice = x.UnitPrice |> Option.defaultValue 0.00 |> decimal
+          DozenPrice = x.DozenPrice |> Option.defaultValue 0.00 |> decimal
+          ContractType = x.ContractType |> Option.defaultValue "Error loading data"
+    })

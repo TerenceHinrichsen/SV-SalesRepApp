@@ -72,14 +72,6 @@ module Home =
                buttonGroup.fullWidth true
                buttonGroup.classes.root "Padded"
                buttonGroup.children [
-                Buttons.primaryButtonLarge "View customer detail" (fun _ -> dispatch Drawer.MenuItem.CustomerCreate)         
-                ]]
-              Mui.buttonGroup [
-               buttonGroup.size.large
-               buttonGroup.orientation.vertical
-               buttonGroup.fullWidth true
-               buttonGroup.classes.root "Padded"
-               buttonGroup.children [
                 Buttons.primaryButtonLarge "Edit existing customer" (fun _ -> dispatch Drawer.MenuItem.CustomerEdit)           
                 ]]
               Mui.buttonGroup [
@@ -88,9 +80,8 @@ module Home =
                buttonGroup.fullWidth true
                buttonGroup.classes.root "Padded"
                buttonGroup.children [
-                Buttons.primaryButtonLarge "Create new TODO" (fun _ -> dispatch Drawer.MenuItem.ChangeHistory)       
-                ]]
-        ]
+                Buttons.primaryButtonLarge "Instructions / Help" (fun _ -> dispatch Drawer.MenuItem.ChangeHistory)           
+                ]]        ]
       ]
     ]
     

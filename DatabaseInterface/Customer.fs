@@ -1,6 +1,7 @@
 namespace DatabaseInterface 
 open Configuration
 open Dapper
+open System
 open System.Data.SqlClient
 open Helpers
 
@@ -66,6 +67,17 @@ module Customer =
       Number: string option
       TransactionDate: string option
       Total: string
+    }
+
+    type CustomerSpecialDb = {
+      CustomerId : int option
+      ItemCode : string option
+      ItemDescription : string option
+      DozenPrice : double option
+      UnitPrice : double option
+      EffectiveDate : DateTime option
+      ExpiryDate : DateTime option
+      ContractType:  string option
     }
 
     type SalesHistoryPoint = {
@@ -277,6 +289,16 @@ module Customer =
     let transaction = connection.BeginTransaction("ReadOneCustomers")
     let parameters = dict ["CustomerId" => customerId ]
     try connection.Query<TransactionDetail> (sql, parameters, transaction) |> Seq.toList
+    finally connection.Close()
+
+  let fetchSpecials (customerId : int) =
+    registerOptionTypes()
+    let sql = SqlScripts.customerCurrentSpecials
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("CustomerSpecials")
+    let parameters = dict ["CustomerId" => customerId ]
+    try connection.Query<CustomerSpecialDb> (sql, parameters, transaction) |> Seq.toList
     finally connection.Close()
 
   let fetchSalesHistory (customerId : int) =
