@@ -31,7 +31,7 @@ type SearchFields = {
   SalesRepList: SalesRep list option
   RepVisitFrequencies : string list option
   MarketSegments : string list option }
-  
+
 type State = {
     DrawerState: Drawer.State
     PageState: PageState
@@ -41,7 +41,7 @@ type State = {
     Loading : bool
   }
 
-type Message = 
+type Message =
     | DrawerMessage              of Drawer.Message
     | HomePageMessage            of Drawer.MenuItem
     | ListingsMessage            of Listings.Message
@@ -75,25 +75,23 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
     match msg with
     | MenuItem.Home -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.Home)
     | MenuItem.CustomerCreate -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerCreate)
-    | MenuItem.CustomerEdit -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerEdit)
-    | MenuItem.CustomerView -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerView)
     | MenuItem.CustomerListings -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.CustomerListings)
     | MenuItem.ChangeHistory -> currentState, Cmd.ofMsg <| DrawerMessage (ChangeMenu MenuItem.ChangeHistory)
   | LoginPageMessage msg, LoginPageState state ->
     let nextState, nextCommand = Login.update msg state
     match nextState.LoginSuccess with
     | Some success ->
-        if success then 
+        if success then
           let initHome, _  = Home.init()
           {currentState with PageState = HomePageState initHome; LoggedOnUser = { UserId = 0; Username = nextState.Username}; UserAuthenticated = true} ,
           Cmd.OfAsync.perform Server.api.getAreaList () AreaListUpdated
         else { currentState with PageState = LoginPageState { nextState with LoginSuccess = None }}, Toast.errorMessage 5000 (System.Exception("Login failed"))
     | None -> { currentState with PageState = LoginPageState nextState }, Cmd.map Message.LoginPageMessage nextCommand
-  | DrawerMessage drawerMessage, _  -> 
+  | DrawerMessage drawerMessage, _  ->
     let nextDrawerState, nextDrawerCommand = Drawer.update drawerMessage currentState.DrawerState
     match nextDrawerState.CurrentMenu with
     | MenuItem.Home ->
-      let homeState, _ = 
+      let homeState, _ =
         match currentState.SearchFields with
         | Some x -> {
           Home.State.AreaList = x.AreaList
@@ -128,33 +126,6 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
             Listings.State.ShowViewScreen = false }, Cmd.none
           | None -> Listings.init()
       { currentState with PageState = ListingPageState listingState; DrawerState = nextDrawerState }, nextDrawerCommand
-    | MenuItem.CustomerEdit ->
-      let editState, _ =
-        match currentState.SearchFields with
-          | Some x -> {
-            CustomerEdit.State.isLoading = false
-            CustomerEdit.State.AreaList = x.AreaList                        |> Option.get
-            CustomerEdit.State.GroupList = x.GroupList                      |> Option.get
-            CustomerEdit.State.PriceListList = x.PriceListList              |> Option.get
-            CustomerEdit.State.SalesRepList = x.SalesRepList                |> Option.get
-            CustomerEdit.State.MarketSegments = x.MarketSegments            |> Option.get
-            CustomerEdit.State.RepVisitFrequencies = x.RepVisitFrequencies  |> Option.get
-            CustomerEdit.State.SelectedArea = None
-            CustomerEdit.State.AreaCode = ""
-            CustomerEdit.State.SelectedGroup = None
-            CustomerEdit.State.GroupCode = ""
-            CustomerEdit.State.SelectedRep = None
-            CustomerEdit.State.RepCode = ""
-            CustomerEdit.State.SelectedPricelist = None
-            CustomerEdit.State.PricelistCode = ""
-            CustomerEdit.State.CurrentCustomerId = None
-            CustomerEdit.State.CustomerCode = ""
-            CustomerEdit.State.DetailForm = CustomerEdit.emptyForm
-            CustomerEdit.State.SelectedRepVisitFrequency = ""
-            CustomerEdit.State.SelectedMarketSegment = ""
-            CustomerEdit.State.ResponseFromDatabase = None }, Cmd.none
-          | None -> CustomerEdit.init()
-      { currentState with PageState = CustomerEditState editState; DrawerState = nextDrawerState }, nextDrawerCommand
     | MenuItem.CustomerCreate ->
       let createState, _ =
         match currentState.SearchFields with
@@ -182,9 +153,6 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
             CustomerCreate.State.ResponseFromDatabase = None }, Cmd.none
           | None -> CustomerCreate.init()
       { currentState with PageState = CustomerCreateState createState; DrawerState = nextDrawerState }, nextDrawerCommand
-    | MenuItem.CustomerView ->
-      let customerViewState, _ = CustomerView.init ()
-      { currentState with PageState = CustomerViewState customerViewState; DrawerState = nextDrawerState }, nextDrawerCommand
     | MenuItem.ChangeHistory ->
       let state, _ = ChangeHistory.init ()
       { currentState with PageState = ChangeHistoryState state; DrawerState = nextDrawerState }, nextDrawerCommand
@@ -289,7 +257,7 @@ let view (state : State) (dispatch : Message -> unit) =
                   | CustomerCreateState state -> yield CustomerCreate.view state (CustomerCreateMessage >> dispatch)
                   | CustomerViewState   state -> yield CustomerView.view   state (CustomerViewMessage   >> dispatch)
                   | LoginPageState      state -> yield Login.view          state (LoginPageMessage      >> dispatch)
-                  | ChangeHistoryState  state -> yield ChangeHistory.view  state 
+                  | ChangeHistoryState  state -> yield ChangeHistory.view  state
                   | NotFoundState             -> yield Mui.typography "This page is not available"
             ]
       ] ]

@@ -77,8 +77,10 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+	 , c.AccountStatus
 FROM   dbo.Customer c
-ORDER BY CustomerAccountNumber ;
+WHERE c.AccountStatus <> 'DELETE'
+ORDER BY CustomerAccountNumber
 """
 
 [<Literal>]
@@ -124,6 +126,7 @@ SELECT c.CustomerId
 	 , c.ulARMarketSegment MarketSegment
 FROM   dbo.Customer c
 WHERE c.CustomerId = @CustomerId
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -169,12 +172,13 @@ SELECT c.CustomerId
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
 FROM   dbo.Customer c
-WHERE CustomerAccountName LIKE @Search
-OR CustomerAccountNumber LIKE @Search 
+WHERE c.AccountStatus <> 'DELETE'
+AND (CustomerAccountName LIKE @Search
+OR CustomerAccountNumber LIKE @Search
 OR Physical LIKE @Search
 OR Suburb LIKE @Search
 OR Delivered_To LIKE @Search
-OR Contact_Person LIKE @Search
+OR Contact_Person LIKE @Search)
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -221,6 +225,7 @@ SELECT c.CustomerId
 	 , c.ulARMarketSegment MarketSegment
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -267,6 +272,7 @@ SELECT c.CustomerId
 	 , c.ulARMarketSegment MarketSegment
 FROM   dbo.Customer c
 WHERE SalesRepId = @Rep
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -313,6 +319,7 @@ SELECT c.CustomerId
 	 , c.ulARMarketSegment MarketSegment
 FROM   dbo.Customer c
 WHERE c.GroupId = @Group
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -361,6 +368,7 @@ FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.GroupId = @Group
 AND c.SalesRepId = @Rep
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -408,6 +416,7 @@ SELECT c.CustomerId
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.SalesRepId = @Rep
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -455,6 +464,7 @@ SELECT c.CustomerId
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.GroupId = @Group
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -502,6 +512,7 @@ SELECT c.CustomerId
 FROM   dbo.Customer c
 WHERE c.GroupId = @Group
 AND c.SalesRepId = @Rep
+AND c.AccountStatus <> 'DELETE'
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -537,7 +548,7 @@ VALUES (@CustomerId, @ChangeText)
 
 INSERT INTO dbo.CustomerAlter
 (CustomerId, CustomerAccountName, GroupId, RepId, PriceListId, Contact_Person, Delivered_To, Telephone, Cellphone, Email, Physical, Physical2, Suburb, ucARDeliveryEmail, ulARMarketSegment, RepVisitFrequency)
-SELECT   
+SELECT
 	 @CustomerId
 	, CustomerAccountName = @CustomerName
 	, GroupId = @GroupId
@@ -567,9 +578,9 @@ INSERT INTO dbo.Todo
   , PromisedDate
 )
 SELECT
-	@CustomerId		
-  , @Assignee	
-  , @Message	
+	@CustomerId
+  , @Assignee
+  , @Message
   , @PromisedDate
     """
 
@@ -658,7 +669,7 @@ let TwoYearSalesHistory = """
 			   csh.Period
 	  FROM	 dbo.CustomerSalesHistory csh
 	  ORDER BY csh.Period DESC)
-  , SalesValues AS 
+  , SalesValues AS
   (
   SELECT		  pl.Period
 			  , SUM(ISNULL(csh.Boxes, 0)) Boxes

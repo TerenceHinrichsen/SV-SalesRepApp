@@ -52,7 +52,7 @@ html, body {
 .loginCard {
   margin: auto;
   align-content: center;
-  width : 60%;
+  width : 80%;
   height: 100%;
   padding: 40px;
 }
@@ -76,7 +76,6 @@ html, body {
   padding: 5px;
   margin: auto;
   width: 95%;
-  min-height : 500px;
 }
 
 .ThirdCard {
@@ -94,6 +93,7 @@ html, body {
 
 .inputPadding {
     padding: 5px;
+    margin: auto;
 }
 
 nav.navbar {
@@ -183,8 +183,6 @@ nav.navbar {
   font-size: 14px;
   font-weight: 700;
   color: #8F99A3;
-
-  &:hover {}
 }
 
 .card-table .table {

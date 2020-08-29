@@ -13,7 +13,7 @@ module Login =
   type State = {
     Username: string
     Password: string
-    IsLoading : bool 
+    IsLoading : bool
     LoginSuccess: bool option
     StatusMessage: string  }
 
@@ -34,7 +34,9 @@ module Login =
     match msg with
     | UsernameChanged x -> {state with Username = x}, Cmd.none
     | Passwordchanged x -> {state with Password = x}, Cmd.none
-    | LoginRequested -> {state with IsLoading = true}, (Cmd.OfAsync.perform Server.api.loginUser (state.Username, state.Password)) LoginResponse
+    | LoginRequested ->
+        printfn "Login requested!"
+        {state with IsLoading = true}, (Cmd.OfAsync.perform Server.api.loginUser (state.Username, state.Password)) LoginResponse
     | LoginResponse success ->
         let response = if not success then "Could not log you in!" else ""
         {state with IsLoading = false; StatusMessage = response; LoginSuccess = Some success }, Cmd.none
@@ -56,7 +58,7 @@ module Login =
                   textField.autoFocus true
                   textField.disabled state.IsLoading
                   textField.fullWidth true
-                  textField.onChange (fun x -> dispatch <| UsernameChanged x)
+                  textField.onChange (UsernameChanged >> dispatch)
                   textField.variant.outlined
                   textField.label "Username"
                   textField.required true ] ] ]
@@ -67,14 +69,14 @@ module Login =
                 Mui.textField [
                   textField.fullWidth true
                   textField.disabled state.IsLoading
-                  textField.onChange (fun x -> dispatch <| Passwordchanged x)
+                  textField.onChange (Passwordchanged >> dispatch)
                   textField.variant.outlined
                   textField.type' "password"
                   textField.label "Password"
                   textField.error (if state.StatusMessage <> "" then true else false)
                   textField.required true ] ] ]
             Mui.formControl [
-              formControl.fullWidth true             
+              formControl.fullWidth true
               formControl.margin.normal
               formControl.children [
                 Mui.button [
@@ -88,7 +90,7 @@ module Login =
                 ]
               ] ]
             if state.IsLoading then Mui.linearProgress[]
-            if state.LoginSuccess |> Option.isSome then 
+            if state.LoginSuccess |> Option.isSome then
                 if not state.LoginSuccess.Value then Mui.alert[ alert.severity.error; alert.children[state.StatusMessage]]
             Strings.body1 "Please note that all information on this site is confidential and should not be shared with any individual."
           ]

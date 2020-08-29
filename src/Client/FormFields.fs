@@ -41,7 +41,6 @@ module FormFields =
       Mui.textField [
         textField.label label
         textField.value value
-        textField.defaultValue System.DateTime.Now
         textField.fullWidth true
         textField.variant.outlined
         textField.required true
@@ -72,5 +71,4 @@ module FormFields =
         Mui.menuItem [ menuItem.children ["GEMIDDELD"] ]
         Mui.menuItem [ menuItem.children ["SWAK"] ]
         Mui.menuItem [ menuItem.children ["NVT"] ]
-
       ] ]

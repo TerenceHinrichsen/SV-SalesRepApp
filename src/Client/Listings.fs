@@ -27,7 +27,7 @@ module Listings =
     ShowViewScreen : bool
     CurrentCustomerId: int option
     RepVisitFrequencies : string list
-    MarketSegments : string list 
+    MarketSegments : string list
     CustomerSearch : string option
   }
 
@@ -82,7 +82,7 @@ module Listings =
     | ToggleEditScreen s -> { currentState with ShowEditScreen = (not currentState.ShowEditScreen); CurrentCustomerId = Some s }, Cmd.none
     | ToggleViewScreen s -> { currentState with ShowViewScreen = (not currentState.ShowViewScreen); CurrentCustomerId = Some s }, Cmd.none
     | CustomerSearchChanged s -> { currentState with CustomerSearch = Some s }, Cmd.none
-    | ExceptionReceived exn -> { currentState with isLoading = false }, Toast.errorMessage 3000 exn 
+    | ExceptionReceived exn -> { currentState with isLoading = false }, Toast.errorMessage 3000 exn
     | _ -> currentState, Cmd.none
 
   let selectedArea state =
@@ -95,11 +95,10 @@ module Listings =
     state.SelectedGroup |> Option.bind (fun i -> state.GroupList |> List.tryFind(fun item -> item.Id = i))
 
   let ViewCustomer id _ =
-    printfn "View clicked %A" id 
+    printfn "View clicked %A" id
 
   let view (state : State) (dispatch : Message -> unit) =
     Mui.grid [
-      grid.spacing._2
       grid.container true
       grid.children [
         Mui.grid [
@@ -120,7 +119,7 @@ module Listings =
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText "Please select area from dropdown" 
+                    textField.helperText "Please select area from dropdown"
                     textField.label "Area code"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -154,7 +153,7 @@ module Listings =
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText "Please select rep from dropdown" 
+                    textField.helperText "Please select rep from dropdown"
                     textField.label "Sales rep code"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -183,12 +182,12 @@ module Listings =
                   autocomplete.value (selectedGroup state)
                   autocomplete.getOptionLabel (function Some (e: Group) -> e.Code | None -> "Unknown")
                   autocomplete.inputValue state.GroupCode
-                  autocomplete.onInputChange (fun x -> dispatch (GroupChanged x))
+                  autocomplete.onInputChange (GroupChanged >> dispatch)
                   autocomplete.onChange (fun (item: Group) -> dispatch (GroupSelected item.Id))
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText "Please select group from dropdown" 
+                    textField.helperText "Please select group from dropdown"
                     textField.label "Group code"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -201,13 +200,10 @@ module Listings =
                                                 prop.key option.Id
                                                 prop.text option.Code ] )
                         listItemText.secondary option.Description ] ] ) ]
-              ] ] ]
-            ]
-        ]
+              ] ] ] ]]
         Mui.grid [
           grid.item true
           grid.xs._12
-          grid.spacing._0
           grid.children [
             Mui.card [
               Mui.cardContent [
@@ -217,12 +213,8 @@ module Listings =
                   textField.fullWidth true
                   textField.variant.outlined
                   textField.helperText "Enter any portion of text to search for. Fields searched are customer code, name and contact"
-                  textField.value state.CustomerSearch
-                  textField.onChange (fun t -> dispatch <| CustomerSearchChanged t)
-                ]
-              ] ] ]
-            ]
-        ]
+                  textField.onChange (CustomerSearchChanged >> dispatch)
+                ] ] ] ] ] ]
         Mui.grid [
           grid.item true
           grid.xs._12
@@ -232,15 +224,10 @@ module Listings =
               button.color.primary
               prop.onClick (fun _ -> dispatch SearchForCustomers)
               button.fullWidth true
-              button.children [
-                "SEARCH"
-              ]
-            ]
+              button.children [ "SEARCH" ] ]
             Mui.container [
               container.children [
-                if state.isLoading then Mui.linearProgress[] else Mui.hidden [hidden.xsUp true]
-              ]
-            ]
+                if state.isLoading then Mui.linearProgress[] else Mui.hidden [hidden.xsUp true]  ] ]
             CustomerTable.customerList (state.CustomerList |> Option.defaultValue List.empty) ( fun id _ -> dispatch (ToggleViewScreen id)) ( fun id _ -> dispatch (ToggleEditScreen id)) ]
         ]
       ] ]

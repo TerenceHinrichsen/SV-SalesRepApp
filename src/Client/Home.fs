@@ -7,7 +7,7 @@ module Home =
   open Elmish.React
   open Feliz.MaterialUI
   open Shared
-  
+
   type State = {
     AreaList: Area list option
     GroupList: Group list option
@@ -31,7 +31,7 @@ module Home =
 
   let update _ (currentState : State) : State * _ =
     currentState, Cmd.none
-    
+
   let view (state : State) dispatch =
     if  state.AreaList.IsNone ||
         state.GroupList.IsNone ||
@@ -40,7 +40,7 @@ module Home =
         state.MarketSegmentList.IsNone ||
         state.RepVisitFrequencies.IsNone
     then Mui.paper [ Mui.circularProgress []; Strings.header3 "Loading . . . " ; Strings.subtitle "If this message is still displayed after 5 minutes, refresh the page to try again" ]
-    else 
+    else
         Mui.paper [
           Mui.card [
             Mui.cardContent [
@@ -64,7 +64,7 @@ module Home =
                buttonGroup.fullWidth true
                buttonGroup.classes.root "Padded"
                buttonGroup.children [
-                Buttons.primaryButtonLarge "Add new customer" (fun _ -> dispatch Drawer.MenuItem.CustomerCreate)         
+                Buttons.primaryButtonLarge "Add new customer" (fun _ -> dispatch Drawer.MenuItem.CustomerCreate)
                 ]]
               Mui.buttonGroup [
                buttonGroup.size.large
@@ -72,16 +72,7 @@ module Home =
                buttonGroup.fullWidth true
                buttonGroup.classes.root "Padded"
                buttonGroup.children [
-                Buttons.primaryButtonLarge "Edit existing customer" (fun _ -> dispatch Drawer.MenuItem.CustomerEdit)           
-                ]]
-              Mui.buttonGroup [
-               buttonGroup.size.large
-               buttonGroup.orientation.vertical
-               buttonGroup.fullWidth true
-               buttonGroup.classes.root "Padded"
-               buttonGroup.children [
-                Buttons.primaryButtonLarge "Instructions / Help" (fun _ -> dispatch Drawer.MenuItem.ChangeHistory)           
+                Buttons.primaryButtonLarge "Instructions / Help" (fun _ -> dispatch Drawer.MenuItem.ChangeHistory)
                 ]]        ]
       ]
     ]
-    

@@ -18,7 +18,7 @@ module CustomerTable =
         Mui.tableCell [ tableCell.children [ customer.Telephone     |> Option.defaultValue "" ] ]
         Mui.tableCell [ tableCell.children [ customer.Suburb |> Option.defaultValue "" ] ]
         Mui.tableCell [ tableCell.children [ customer.ContactPerson |> Option.defaultValue "" ] ]
-      ] ] 
+      ] ]
 
   let customerList (customers: Shared.Customer seq) viewFunction editFunction =
     Mui.table [
@@ -26,10 +26,9 @@ module CustomerTable =
       table.size.small
       table.children [
         Mui.tableHead [
-          tableHead.component' "th"
           tableHead.children [
             Mui.tableRow [
-              tableRow.children [ 
+              tableRow.children [
                 Mui.tableCell [ tableCell.variant.head; tableCell.children ["Actions"] ]
                 Mui.tableCell [ tableCell.variant.head; tableCell.children ["Customer Code"] ]
                 Mui.tableCell [ tableCell.variant.head; tableCell.children ["Customer Name"] ]

@@ -9,8 +9,6 @@ module Drawer =
   type MenuItem =
     | Home
     | CustomerListings
-    | CustomerEdit
-    | CustomerView
     | CustomerCreate
     | ChangeHistory
 
@@ -22,14 +20,14 @@ module Drawer =
     | ChangeMenu of MenuItem
 
   let init() = {drawerIsOpen = false; CurrentMenu = Home}, Cmd.none
-  
+
   let update message state =
     match message with
     | ToggleDrawerState -> {state with drawerIsOpen = (not state.drawerIsOpen)}, Cmd.none
     | ChangeMenu newMenu -> {state with CurrentMenu = newMenu; drawerIsOpen = false}, Cmd.none
-  
+
   let menuItems dispatch =
-    ["Home", Home;"Listings", CustomerListings; "Customer management", CustomerEdit; "Account application", CustomerCreate; "Change history", ChangeHistory]
+    ["Home", Home;"Listings", CustomerListings; "Account application", CustomerCreate; "Change history", ChangeHistory]
     |> List.map (fun x ->
           Mui.listItem [ listItem.button true
                          prop.onClick (fun _ -> dispatch (x |> snd))
@@ -53,4 +51,4 @@ module Drawer =
           ] ]
         Mui.list [
           list.children (menuItems (fun x -> dispatch (ChangeMenu x)))
-        ] ] ] 
+        ] ] ]

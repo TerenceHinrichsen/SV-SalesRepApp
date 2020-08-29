@@ -34,6 +34,7 @@ module CustomerView =
     CustomerCode : string
     TodoState : Todo option
     ShowToDoScreen : bool
+    ShowCustomerVisit : bool
     CustomerSpecials : CustomerSpecial list
     ProductMix : ProductMixDatapoint list
    }
@@ -49,10 +50,12 @@ module CustomerView =
     | CustomerChanged of string
     | LookupCustomerId
     | AddTodo of int
+    | ShowCustomerVisitScreen
     | SaveToDo
     | TodoSaved of string
     | ExceptionReceived of System.Exception
     | CloseToDo
+    | CloseCustomerVisit
     | AssigneeChanged of string
     | PromisedDateChanged of string
     | MessageChanged of string
@@ -60,7 +63,7 @@ module CustomerView =
     | FetchSpecials
     | FetchProductMix
     | LoadProductMix of ProductMixDatapoint list
-    
+
 
   let init () =
     let initialCustomerVisitState, _ = CustomerVisit.init()
@@ -86,6 +89,7 @@ module CustomerView =
       CustomerCode = ""
       TodoState = None
       ShowToDoScreen = false
+      ShowCustomerVisit = false
       CustomerSpecials = List.Empty
       ProductMix = List.empty
     }, Cmd.none
@@ -129,7 +133,8 @@ module CustomerView =
         match state.ProductMix.Length with
         | 0 -> state, Cmd.OfAsync.perform Server.api.getProductMix (state.CurrentCustomerId |> Option.defaultValue 0) LoadProductMix
         | _ -> state, Cmd.none
-    | LoadProductMix productMix -> { state with ProductMix = productMix }, Toast.infoMessage 2000 "Specials loaded"
+    | LoadProductMix productMix -> { state with ProductMix = productMix }, Cmd.none //Toast.infoMessage 2000 "Specials loaded"
+    | ShowCustomerVisitScreen -> {state with ShowCustomerVisit = true }, Cmd.none
     | CustomerVisitMessage msg ->
         let (nextState, nextCommand) = CustomerVisit.update msg state.VisitForm
         { state with VisitForm = nextState } , nextCommand
@@ -145,6 +150,7 @@ module CustomerView =
     | TodoSaved string -> { state with TodoState = None }, Toast.successMessage 5000 string
     | ExceptionReceived exn -> state, Toast.errorMessage 5000 exn
     | CloseToDo -> { state with ShowToDoScreen = false },  Cmd.none
+    | CloseCustomerVisit -> { state with ShowCustomerVisit = false },  Cmd.none
     | AssigneeChanged s ->
         match state.TodoState with
         | Some tds -> { state with TodoState = Some { tds with Assignee = s} }, Cmd.none
@@ -165,39 +171,63 @@ module CustomerView =
         Mui.tableCell (x.Number |> Option.defaultValue "")
         Mui.tableCell [tableCell.align.right; tableCell.children (x.Total |> string)  ] ] ] )
 
-  let specialsRow ( list : CustomerSpecial list) =
-    list
-    |> List.sortBy (fun x -> x.ItemCode)
-    |> List.map (fun x -> Mui.tableRow [
-      tableRow.children [
-        Mui.tableCell (x.ItemDescription)
-        Mui.tableCell (x.EffectiveDate.ToShortDateString())
-        Mui.tableCell (x.DozenPrice.ToString())
-        Mui.tableCell (x.ContractType)
-      ]
-    ])
+  let specialsTable ( list : CustomerSpecial list) =
+    Mui.container [
+        container.children [
+            Mui.table [
+                table.stickyHeader true
+                table.children [
+        Mui.tableHead [
+            Mui.tableCell "Item description"
+            Mui.tableCell "Start date"
+            Mui.tableCell "Dozen price"
+            Mui.tableCell "Unit price"
+        ]
+        Mui.tableBody (
+            list
+            |> List.sortBy (fun x -> x.ItemCode)
+            |> List.map (fun x -> Mui.tableRow [
+              tableRow.children [
+                Mui.tableCell (x.ItemDescription)
+                Mui.tableCell (x.EffectiveDate.ToShortDateString())
+                Mui.tableCell (x.DozenPrice.ToString("0.00"))
+                Mui.tableCell (x.UnitPrice.ToString("0.00")) ]
+    ]) ) ] ] ] ]
 
   type PieSlice = { name: string; value : int }
 
   let productMixGraph ( list : ProductMixDatapoint list) =
+    let productMixList datapoint =
+        Mui.tableRow [
+            Mui.tableCell datapoint.ProductCode
+            Mui.tableCell (datapoint.TotalBoxes.ToString("0.00"))
+        ]
     let cells =
         list
         |> List.map (fun x -> { name = x.ProductCode; value = x.TotalBoxes |> int})
-
+    Mui.container [
+        container.children [
     Recharts.pieChart [
-      pieChart.width 800
-      pieChart.height 400
+      pieChart.width 300
+      pieChart.height 250
+      pieChart.data cells
       pieChart.children [
         Recharts.pie [
           pie.data cells
           pie.dataKey (fun point -> point.value)
-          pie.cx 230
-          pie.cy 200
+          pie.cx 150
+          pie.cy 100
           pie.label true
-          pie.fill  "#82ca9d"
-        ]
-      ]
-    ]
+          pie.fill  "#82ca9d" ] ] ]
+    Mui.table [
+        table.stickyHeader true
+        table.children [
+            Mui.tableHead [
+                Mui.tableRow [
+                    Mui.tableCell "Product code"
+                    Mui.tableCell "TotalBoxes (for last 8 weeks)" ] ]
+            Mui.tableBody (List.map productMixList list )
+        ] ]]]
 
   let view (state : State) (dispatch : Message -> unit) =
     Mui.paper[
@@ -209,7 +239,7 @@ module CustomerView =
           dialog.children [
             Mui.dialogContent [
               match state.TodoState with
-              | Some todoState -> 
+              | Some todoState ->
                   Mui.formControl [
                     Mui.textField [textField.type' "date"; textField.onChange (PromisedDateChanged >> dispatch)]
                     Mui.textField [textField.label "Responsible person"; textField.value todoState.Assignee ;textField.onChange (AssigneeChanged >> dispatch) ]
@@ -219,7 +249,16 @@ module CustomerView =
             Buttons.primaryButton 1 "Save" (fun _ -> dispatch SaveToDo)
             Buttons.secondaryButton 2 "Cancel" (fun _ -> dispatch CloseToDo)
             ] ] ]
-
+        Mui.dialog [
+          dialog.open' state.ShowCustomerVisit
+          dialog.maxWidth.xl
+          dialog.onBackdropClick (fun _ -> dispatch CloseCustomerVisit)
+          dialog.children [
+            Mui.dialogContent [ CustomerVisit.view state.VisitForm (CustomerVisitMessage >> dispatch) ]
+            Mui.dialogActions [
+            Buttons.primaryButton 1 "Save" (fun _ -> dispatch Save)
+            Buttons.secondaryButton 2 "Cancel" (fun _ -> dispatch CloseCustomerVisit)
+            ] ] ]
         match state.IsLoading with
         | true -> Mui.circularProgress [ circularProgress.size 50; circularProgress.color.secondary ]
         | false ->
@@ -228,7 +267,6 @@ module CustomerView =
                 Mui.paper [
                     Mui.expansionPanel [
                       expansionPanel.variant.outlined
-                      expansionPanel.defaultExpanded true
                       expansionPanel.children [
                         Mui.expansionPanelSummary [
                           expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")
@@ -237,29 +275,29 @@ module CustomerView =
                           expansionPanelDetails.classes.root "wrappingContainer"
                           expansionPanelDetails.children [
                             Buttons.primaryButton customerId "Add reminder" (fun _ -> dispatch (AddTodo customerId))
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "ThirdCard";
+                            Buttons.primaryButton customerId "Record visit" (fun _ -> dispatch (ShowCustomerVisitScreen))
+                            Buttons.primaryButton customerId "Mark for deletion" (fun _ -> dispatch (AddTodo customerId))
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children [
                                             Mui.table [
+                                              table.size.small
                                               table.children [
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Customer name"; Mui.tableCell state.Name] ]
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Group" ; Mui.tableCell state.GroupCode ] ]
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Area" ; Mui.tableCell state.AreaCode ] ]
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Ageing period" ; Mui.tableCell state.AgeingPeriod ] ]
-                                              ] ]
-                                            ]
-                                          ]
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "ThirdCard";
+                                              ] ] ] ]
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children [
                                             Mui.table [
-                                              table.children [
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Rotation"; Mui.tableCell state.Rotation] ]
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "GY %" ; Mui.tableCell state.GYPercentage ] ]
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "GP %" ; Mui.tableCell  state.GPPercentage] ]
-                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Other supplier" ; Mui.tableCell state.OtherSupplier ] ]
-                                              ] ]
-                                            ]
-                                          ]
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "ThirdCard";
+                                               table.size.small
+                                               table.children [
+                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Rotation"; Mui.tableCell state.Rotation] ]
+                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "GY %" ; Mui.tableCell state.GYPercentage ] ]
+                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "GP %" ; Mui.tableCell  state.GPPercentage] ]
+                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Other supplier" ; Mui.tableCell state.OtherSupplier ] ]
+                                              ] ] ] ]
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children [
                                             Mui.table [
                                               table.size.small
@@ -270,13 +308,13 @@ module CustomerView =
                                               ] ]
                                             ]
                                           ]
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children [
                                             Strings.subtitle "Last 5 invoices for this customer"
                                             Mui.table [table.size.small ;table.children (tableRows state.InvoiceList) ]
                                             ]
                                             ]
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children [
                                             Strings.subtitle "Last 5 returns for this customer"
                                             Mui.table [
@@ -294,7 +332,7 @@ module CustomerView =
                           expansionPanelSummary.children (Strings.header5 "Sales trend") ]
                         Mui.expansionPanelDetails [
                           expansionPanelDetails.children [
-                            if not state.SalesGraphLoaded then Strings.body1 "Could not locate data"
+                            if not state.SalesGraphLoaded then Mui.linearProgress[]
                             elif state.SalesGraphLoading then Mui.circularProgress[]
                             else
                               Mui.grid [
@@ -317,36 +355,16 @@ module CustomerView =
                         Mui.expansionPanelDetails [
                           expansionPanelDetails.classes.root "wrappingContainer"
                           expansionPanelDetails.children [
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
-                              card.children [ productMixGraph state.ProductMix] ]
-                            Mui.card [ card.square true; card.raised true ; card.classes.root "HalfCard";
-                              card.children [
-                                            Mui.table [
-                                              table.children (specialsRow state.CustomerSpecials)  ] ]
-                                          ]
-                              ] ] ] ]
-
-                    Mui.expansionPanel [
-                      expansionPanel.variant.outlined
-                      expansionPanel.children [
-                        Mui.expansionPanelSummary [
-                          expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")
-                          expansionPanelSummary.children (Strings.header5 "Record visit to customer") ]
-                        Mui.expansionPanelDetails [
-                          expansionPanelDetails.children [
-                            Mui.grid [
-                              grid.container true
-                              grid.children [
                             Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
-                              card.children [ CustomerVisit.view state.VisitForm (CustomerVisitMessage >> dispatch) ]
-                                            ]
-                              ] ] ] ]
-                      ] ]
+                              card.children [ productMixGraph state.ProductMix] ]
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
+                              card.children (specialsTable state.CustomerSpecials)
+                              ] ] ] ] ]
                   ]
             | None -> Mui.card [
                 card.children [
                       Mui.container [container.children [ if state.IsLoading then Mui.linearProgress[] else Mui.hidden [hidden.xsUp true] ] ]
-                      FormFields.textInput "Customer code" state.CustomerCode (fun x -> dispatch (CustomerChanged x))
+                      FormFields.textInput "Customer code" state.CustomerCode (CustomerChanged >> dispatch )
                       Buttons.primaryButtonLarge "Load customer" (fun _ -> dispatch LookupCustomerId)
             ]
           ]

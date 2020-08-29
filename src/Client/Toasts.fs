@@ -9,7 +9,7 @@ module Toast =
     Toastr.message message
     |> Toastr.withProgressBar
     |> Toastr.timeout timeout
-    |> Toastr.position BottomFullWidth
+    |> Toastr.position TopFullWidth
 
   let errorMessage timeout (exn: System.Exception) : Cmd<'Message> =
     basicToast exn.Message timeout |> Toastr.error
