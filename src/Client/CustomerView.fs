@@ -63,6 +63,7 @@ module CustomerView =
     | FetchSpecials
     | FetchProductMix
     | LoadProductMix of ProductMixDatapoint list
+    | SaveCustomerVisit
 
 
   let init () =
@@ -163,6 +164,8 @@ module CustomerView =
         match state.TodoState with
         | Some tds -> { state with TodoState = Some { tds with PromisedDate = System.DateTime.Parse s} }, Cmd.none
         | None -> { state with TodoState = Some { Assignee = ""; Message = ""; PromisedDate = System.DateTime.Parse s; CustomerId = 0 }}, Cmd.none
+    | SaveCustomerVisit ->
+        state, Toast.successMessage 5000 "Saved to database"
 
   let tableRows (list : TransDetail list) =
     list |> List.map ( fun x -> Mui.tableRow [
@@ -256,7 +259,7 @@ module CustomerView =
           dialog.children [
             Mui.dialogContent [ CustomerVisit.view state.VisitForm (CustomerVisitMessage >> dispatch) ]
             Mui.dialogActions [
-            Buttons.primaryButton 1 "Save" (fun _ -> dispatch Save)
+            Buttons.primaryButton 1 "Save" (fun _ -> dispatch SaveCustomerVisit)
             Buttons.secondaryButton 2 "Cancel" (fun _ -> dispatch CloseCustomerVisit)
             ] ] ]
         match state.IsLoading with

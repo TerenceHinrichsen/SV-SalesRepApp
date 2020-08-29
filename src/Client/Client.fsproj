@@ -10,7 +10,6 @@
         <Compile Include="..\Shared\Shared.fs" />
         <Compile Include="FormFields.fs" />
         <Compile Include="CustomerVisit.fs" />
-        <Compile Include="CustomerVisitForm.fs" />
         <Compile Include="Toasts.fs" />
         <None Include="index.html" />
         <Compile Include="Buttons.fs" />
