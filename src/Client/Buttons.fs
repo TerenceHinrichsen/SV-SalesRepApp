@@ -9,6 +9,7 @@ module Buttons =
       button.type'.button
       button.fullWidth true
       button.color.primary
+      button.variant.outlined
       prop.id id
       prop.onClick onClick
       button.children [ text ]
@@ -18,6 +19,7 @@ module Buttons =
     Mui.button [
       button.type'.button
       button.fullWidth true
+      button.variant.outlined
       button.color.secondary
       prop.onClick onClick
       prop.id id

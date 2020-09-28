@@ -27,6 +27,13 @@ module ChangeHistory =
         { Version = "1.0.4"; Change = "Added ability to search for specific customer based on a search 'string'"; DateTime = System.DateTime(2020,07,28)}
         { Version = "1.0.5"; Change = "Added Toastr to enhance user feedback on completed / failed requests"; DateTime = System.DateTime(2020,07,29)}
         { Version = "1.0.6"; Change = "Modifying customers - move to auto approval of non-critical changes"; DateTime = System.DateTime(2020,08,01)}
+        { Version = "1.0.7"; Change = "Move customer visit record to Modal. Remove customer edit screen - all interactions should
+        be driven from Customer Listings (i.e - Find customer and then decide on action). Add Mark for deletion button to customer view."; DateTime = System.DateTime(2020,09,01)}
+        { Version = "1.1.0"; Change = "Add functionality for Customer deletions. Syncs every hour.
+        Add BACK button to Customer View and Customer Edit screens.
+        Add current rep, group and pricelist to Customer Edit screen.
+        "
+        ; DateTime = System.DateTime(2020,09,13)}
 
     ]
     }, Cmd.none
@@ -38,9 +45,25 @@ module ChangeHistory =
           Strings.body1 changeData.Change
           Strings.subtitle (changeData.DateTime.ToString("yyyy-MM-dd"))
           ] ]
-      
+
   let view (state : State) =
     Mui.paper [
-      paper.children (state.Changes |> List.rev |>List.map changeCard)
-    ] 
-    
+      paper.children [
+        Mui.card [
+          card.children [
+            Mui.cardHeader [ cardHeader.title "Instructions" ]
+            Mui.cardContent [
+            ]
+          ]
+        ]
+        Mui.card [
+          card.square true
+          card.children [
+            Mui.cardHeader [ cardHeader.title "Change history"]
+            Mui.cardContent ( state.Changes |> List.rev |>List.map changeCard )
+          ]
+
+        ]
+    ]
+    ]
+

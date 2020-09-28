@@ -40,8 +40,8 @@ type Customer = {
   CustomerAccountDescription : string option
   AreaId: int option
   AreaCode : string option
-  AreaDescription : string option 
-  GroupId: int option 
+  AreaDescription : string option
+  GroupId: int option
   GroupCode : string option
   GroupDescription : string option
   PriceListId: int option
@@ -50,12 +50,12 @@ type Customer = {
   CustomerIsOnHold: bool
   Physical : string option
   Physical2 : string option
-  Suburb : string option 
+  Suburb : string option
   Physical4 : string option
   GPS : string option
-  PhysicalPC : string option 
+  PhysicalPC : string option
   Telephone : string option
-  Cellphone : string option 
+  Cellphone : string option
   Fax : string option
   MainAccLink: int option
   udARLastVisit : System.DateTime option
@@ -71,6 +71,7 @@ type Customer = {
   DeliveryEmail: string option
   SalesRepId: int option
   MarketSegment: string option
+  AccountStatus: string option
 }
 type TransDetail = {
   Number: string option
@@ -164,6 +165,16 @@ type NewAccountData = {
   RepId: int
 }
 
+type CustomerVisitData = {
+    CustomerId : int
+    VisitDate: System.DateTime
+    Rotation: string
+    GYPercentage: int
+    GPPercentage: string
+    OtherSupplier : string
+    Comments: string
+}
+
 
 type ISuccessApi =
     { getCustomerById : int -> Async<Customer>
@@ -189,4 +200,7 @@ type ISuccessApi =
       addNewTodo : Todo -> Async<string>
       getCustomerSpecials : int -> Async<CustomerSpecial list>
       getProductMix : int -> Async<ProductMixDatapoint list>
+      markCustomerForDeletion : (int * string) -> Async<unit>
+      markCustomerForArchive : (int * string) -> Async<unit>
+      recordCustomerVisit : CustomerVisitData -> Async<unit>
     }

@@ -45,13 +45,16 @@ let successApi = {
   updateCustomerMaster               = fun (customerUpdateData) -> async {return DbFunctions.updateCustomerData customerUpdateData }
   getCustomerViewDetail              = fun (customerId) -> async { return DbFunctions.fetchDisplayDetail customerId }
   getLast5Invoices                   = fun customerId   -> async { return DbFunctions.fetchLast5Invoices customerId }
-  getLast5Credits                    = fun customerId   -> async { return DbFunctions.fetchLast5CreditNotes customerId } 
+  getLast5Credits                    = fun customerId   -> async { return DbFunctions.fetchLast5CreditNotes customerId }
   getSalesGraphData                  = fun customerId   -> async { return DbFunctions.fetchSalesHistory customerId }
   createNewCustomerAccount           = fun customerApplicationData -> async {return DbFunctions.newCustomerApplication customerApplicationData }
   loginUser                          = fun (username, password) -> async {return DbFunctions.loginUser (username, password)}
   addNewTodo                         = fun (todo) -> async { return DbFunctions.addTodo todo}
   getCustomerSpecials                = fun customerId -> async { return DbFunctions.fetchCustomerSpecials customerId }
   getProductMix                      = fun customerId -> async { return DbFunctions.fetchProductMix customerId }
+  markCustomerForDeletion            = fun (customerId, reason) -> async {return DbFunctions.markCustomerForDeletion customerId reason }
+  markCustomerForArchive             = fun (customerId, reason) -> async {return DbFunctions.markCustomerForArchive customerId reason }
+  recordCustomerVisit                = fun (customerVisitData) -> async {return DbFunctions.recordCustomerVisit customerVisitData }
 }
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =

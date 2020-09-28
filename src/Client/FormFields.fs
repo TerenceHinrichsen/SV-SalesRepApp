@@ -12,7 +12,7 @@ module FormFields =
         textField.value value
         textField.fullWidth true
         textField.variant.outlined
-        textField.required true
+        textField.required false
         textField.onChange onChangeFunction ]
 
   let numberInput (label : string) value (onChangeFunction : string -> unit) =
@@ -39,13 +39,14 @@ module FormFields =
 
   let dateInput (label : string) value (onChangeFunction : string -> unit) =
       Mui.textField [
-        textField.label label
-        textField.value value
-        textField.fullWidth true
-        textField.variant.outlined
-        textField.required true
-        textField.onChange onChangeFunction
-        textField.type' "date" ]
+          textField.classes.root "inputPadding"
+          textField.label label
+          textField.value value
+          textField.fullWidth true
+          textField.variant.outlined
+          textField.required true
+          textField.onChange onChangeFunction
+          textField.type' "date" ]
 
   let MultiLineTextInput (label : string) value (onChangeFunction : string -> unit) =
       Mui.textField [

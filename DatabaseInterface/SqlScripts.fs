@@ -124,6 +124,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.CustomerId = @CustomerId
 AND c.AccountStatus <> 'DELETE'
@@ -171,6 +172,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.AccountStatus <> 'DELETE'
 AND (CustomerAccountName LIKE @Search
@@ -223,6 +225,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.AccountStatus <> 'DELETE'
@@ -270,6 +273,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE SalesRepId = @Rep
 AND c.AccountStatus <> 'DELETE'
@@ -317,6 +321,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.GroupId = @Group
 AND c.AccountStatus <> 'DELETE'
@@ -364,6 +369,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.GroupId = @Group
@@ -413,6 +419,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.SalesRepId = @Rep
@@ -461,6 +468,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.AreaId = @Area
 AND c.GroupId = @Group
@@ -509,6 +517,7 @@ SELECT c.CustomerId
 	 , c.EMail
 	 , c.ucARDeliveryEmail DeliveryEmail
 	 , c.ulARMarketSegment MarketSegment
+     , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.GroupId = @Group
 AND c.SalesRepId = @Rep
@@ -687,7 +696,7 @@ let TwoYearSalesHistory = """
 """
 
 let customerCurrentSpecials = """
-SELECT        c.CustomerId
+SELECT DISTINCT c.CustomerId
             , acc.ItemCode
 			, acc.ItemDescription
 			, acc.DozenPrice
@@ -698,5 +707,53 @@ SELECT        c.CustomerId
 FROM		  dbo.Customer				  c
 	LEFT JOIN dbo.ActiveCustomerContracts acc ON acc.CustomerId = c.CustomerId
 												 OR acc.CustomerGroupId = c.GroupId
-WHERE		  c.CustomerId = @CustomerId;
+WHERE		  c.CustomerId = @CustomerId
+AND acc.ExpiryDate > GETDATE()
+;
+"""
+
+let markCustomerForDeletion = """
+INSERT dbo.CustomerDeleteRequest
+    (
+      CustomerId
+    , Reason
+    , ReceivedOn
+    )
+VALUES
+    ( @CustomerId  -- CustomerId - bigint
+    , @Reason -- Reason - varchar(100)
+    , GETDATE ())
+"""
+
+let markCustomerForArchive = """
+INSERT dbo.CustomerArchiveRequest
+    (
+      CustomerId
+    , Reason
+    , ReceivedOn
+    )
+VALUES
+    ( @CustomerId  -- CustomerId - bigint
+    , @Reason -- Reason - varchar(100)
+    , GETDATE ())
+"""
+let recordCustomerVisit = """
+INSERT INTO dbo.CustomerVisit
+(
+  CustomerId
+, VisitDate
+, Rotation
+, GYPercentage
+, GPPercentage
+, OtherSuppliers
+, GeneralComments
+)
+VALUES
+( @CustomerId
+, @VisitDate
+, @Rotation
+, @GYPercentage
+, @GPPercentage
+, @OtherSuppliers
+, @GeneralComments )
 """

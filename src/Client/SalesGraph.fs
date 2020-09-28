@@ -7,7 +7,7 @@ open Shared
 module SalesGraph =
   let chart (data : SalesGraphPoint list) =
     Recharts.composedChart [
-        composedChart.width 650
+        composedChart.width 580
         composedChart.height 250
         composedChart.data data
         composedChart.children [

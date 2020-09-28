@@ -1,5 +1,5 @@
 namespace Database
-module DbFunctions = 
+module DbFunctions =
 
   open DatabaseInterface
   open Shared
@@ -78,7 +78,8 @@ module DbFunctions =
       DeliveryEmail               = customer.DeliveryEmail
       SalesRepId                  = customer.SalesRepId
       MarketSegment               = customer.MarketSegment
-      Email                       = customer.Email }
+      Email                       = customer.Email
+      AccountStatus               = customer.AccountStatus }
 
   let getCustomerById id =
     let response = Customer.FetchDetailFromDatabase id |> List.map(fun x -> fromDatabase x)
@@ -106,7 +107,7 @@ module DbFunctions =
     then 0
     else answer.Head
 
-  let updateCustomerData updateData =
+  let updateCustomerData (updateData : UpdateData) =
     Customer.UpdateCustomerDetails
       updateData.CustomerId
       updateData.CustomerName
@@ -213,3 +214,23 @@ module DbFunctions =
           DozenPrice = x.DozenPrice |> Option.defaultValue 0.00 |> decimal
           ContractType = x.ContractType |> Option.defaultValue "Error loading data"
     })
+
+  let markCustomerForDeletion customerId reason =
+    Customer.markForDeletion (customerId, reason)
+    |> ignore
+
+  let markCustomerForArchive customerId reason =
+    Customer.markForArchive (customerId, reason)
+    |> ignore
+
+  let recordCustomerVisit (visitData : Shared.CustomerVisitData) =
+    let requestData = {
+        Customer.CustomerVisitData.CustomerId = visitData.CustomerId
+        Customer.CustomerVisitData.VisitDate = visitData.VisitDate
+        Customer.CustomerVisitData.Rotation = visitData.Rotation
+        Customer.CustomerVisitData.GYPercentage = visitData.GYPercentage
+        Customer.CustomerVisitData.GPPercentage = visitData.GPPercentage
+        Customer.CustomerVisitData.OtherSupplier = visitData.OtherSupplier
+        Customer.CustomerVisitData.Comments = visitData.Comments
+           }
+    Customer.recordVisit requestData

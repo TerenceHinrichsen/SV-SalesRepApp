@@ -1,11 +1,11 @@
-namespace DatabaseInterface 
+namespace DatabaseInterface
 open Configuration
 open Dapper
 open System
 open System.Data.SqlClient
 open Helpers
 
-module Customer = 
+module Customer =
   type Customer = {
     CustomerId: int
     CustomerAccountNumber : string
@@ -13,8 +13,8 @@ module Customer =
     CustomerAccountDescription : string option
     AreaId: int option
     AreaCode : string option
-    AreaDescription : string option 
-    GroupId: int option 
+    AreaDescription : string option
+    GroupId: int option
     GroupCode : string option
     GroupDescription : string option
     PriceListId: int option
@@ -23,12 +23,12 @@ module Customer =
     CustomerIsOnHold: bool
     Physical : string option
     Physical2 : string option
-    Suburb : string option 
+    Suburb : string option
     Physical4 : string option
     GPS : string option
-    PhysicalPC : string option 
+    PhysicalPC : string option
     Telephone : string option
-    Cellphone : string option 
+    Cellphone : string option
     Fax : string option
     MainAccLink: int option
     udARLastVisit : System.DateTime option
@@ -46,6 +46,7 @@ module Customer =
     Email: string option
     DeliveryEmail: string option
     MarketSegment : string option
+    AccountStatus: string option
     }
 
   type CustomerDisplayDetail = {
@@ -91,6 +92,17 @@ module Customer =
       ProductCode : string
       TotalBoxes:  Double
     }
+
+    type CustomerVisitData = {
+        CustomerId : int
+        VisitDate: DateTime
+        Rotation: string
+        GYPercentage: int
+        GPPercentage: string
+        OtherSupplier : string
+        Comments: string
+    }
+
   let FetchAllFromDatabase =
     registerOptionTypes()
     let sql = SqlScripts.CustomerListSelect
@@ -118,7 +130,7 @@ module Customer =
     let parameters = dict ["CustomerCode" => customerCode ]
     connection.Query<int>(sql, parameters ,transaction = transaction) |> List.ofSeq
 
-  let FetchDetailFromDatabase customerId = 
+  let FetchDetailFromDatabase customerId =
     registerOptionTypes()
     let sql = SqlScripts.customerDetailSelect
     let connection = new SqlConnection(sqlConnectionString)
@@ -247,7 +259,7 @@ module Customer =
     let transaction = connection.BeginTransaction("ReadOneCustomers")
     let changeText = sprintf "Updated to: CustomerId: %A CustomerName: %A GroupId: %A RepId: %A PricelistId: %A Contact1: %A
                               Contact2: %A Telepone: %A Cell:%A Email: %A Physical: %A Physical2: %A Physical3: %A DeliveryEmail: %A MarketSegment: %A RepVisitFrequency: %A "
-                              customerId  customerName  groupId  repId  pricelistId  contact1  contact2  telephone 
+                              customerId  customerName  groupId  repId  pricelistId  contact1  contact2  telephone
                               cell email physical1 physical2  physical3 deliveryEmail   marketSegment repVisitFreq
     let parameters = dict [ "CustomerId" => customerId
                             "ChangeText" =>  changeText
@@ -326,6 +338,30 @@ module Customer =
     try connection.Query<SalesHistoryPoint> (sql, parameters, transaction) |> Seq.toList
     finally connection.Close()
 
+  let markForDeletion (customerId : int, reason: string) =
+    registerOptionTypes()
+    let sql = SqlScripts.markCustomerForDeletion
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("ReadOneCustomers")
+    let parameters = dict ["CustomerId" => customerId
+                           "Reason" => reason ]
+    try connection.Query<unit> (sql, parameters, transaction) |> ignore
+        transaction.Commit()
+    finally connection.Close()
+
+  let markForArchive (customerId : int, reason: string) =
+    registerOptionTypes()
+    let sql = SqlScripts.markCustomerForArchive
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("ReadOneCustomers")
+    let parameters = dict ["CustomerId" => customerId
+                           "Reason" => reason ]
+    try connection.Query<unit> (sql, parameters, transaction) |> ignore
+        transaction.Commit()
+    finally connection.Close()
+
   let newAccountApplication (customerName : string) (customerDescription : string) (groupId: int ) (repId: int ) (pricelistId: int )
     (contact1: string ) (contact2: string ) (telephone: string ) (cell: string ) (email: string ) (physical1: string) (physical2: string)
     (physical3: string) (deliveryEmail: string) (marketSegment: string)  (repVisitFreq: string) (areaId: int)
@@ -338,7 +374,7 @@ module Customer =
     let transaction = connection.BeginTransaction("CreateNew")
     let changeText = sprintf "New account for: CustomerName: %A GroupId: %A RepId: %A PricelistId: %A Contact1: %A
                               Contact2: %A Telepone: %A Cell:%A Email: %A Physical: %A Physical2: %A Physical3: %A DeliveryEmail: %A MarketSegment: %A RepVisitFrequency: %A "
-                              customerName  groupId  repId  pricelistId  contact1  contact2  telephone 
+                              customerName  groupId  repId  pricelistId  contact1  contact2  telephone
                               cell email physical1 physical2  physical3 deliveryEmail   marketSegment repVisitFreq
     let parameters = dict [ "ChangeText"          => changeText
                             "AccountName"        => customerName
@@ -370,3 +406,20 @@ module Customer =
         | exn -> sprintf "Could not insert into database %A" exn
     finally
       connection.Close()
+
+  let recordVisit (visitData: CustomerVisitData) =
+    registerOptionTypes()
+    let sql = SqlScripts.recordCustomerVisit
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("ReadOneCustomers")
+    let parameters = dict ["CustomerId" => visitData.CustomerId
+                           "VisitDate" => visitData.VisitDate
+                           "Rotation" => visitData.Rotation
+                           "GYPercentage" => visitData.GYPercentage
+                           "GPPercentage" => visitData.GPPercentage
+                           "OtherSuppliers" => visitData.OtherSupplier
+                           "GeneralComments" => visitData.Comments ]
+    try connection.Query<unit> (sql, parameters, transaction) |> ignore
+        transaction.Commit()
+    finally connection.Close()

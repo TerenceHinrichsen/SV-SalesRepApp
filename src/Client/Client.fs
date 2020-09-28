@@ -34,6 +34,7 @@ type SearchFields = {
 
 type State = {
     DrawerState: Drawer.State
+    ListingPageState : Listings.State
     PageState: PageState
     SearchFields : SearchFields option
     UserAuthenticated : bool
@@ -60,12 +61,14 @@ type Message =
 let init () : State * Cmd<Message> =
     let initialDrawerState, _ = Drawer.init()
     let initialLoginPageState = Login.init
+    let initialListingState, _ = Listings.init()
     let initialModel = {
         UserAuthenticated = false
         LoggedOnUser = { UserId = 0; Username = "Unknown"}
         DrawerState = initialDrawerState
         PageState = LoginPageState initialLoginPageState
         SearchFields = None
+        ListingPageState = initialListingState
         Loading = false }
     initialModel, Cmd.none
 
@@ -173,7 +176,6 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
           CustomerEdit.State.SelectedArea = None
           CustomerEdit.State.AreaCode = ""
           CustomerEdit.State.SelectedGroup = None
-          CustomerEdit.State.GroupCode = ""
           CustomerEdit.State.SelectedRep = None
           CustomerEdit.State.RepCode = ""
           CustomerEdit.State.SelectedPricelist = None
@@ -185,20 +187,27 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
           CustomerEdit.State.SelectedMarketSegment = ""
           CustomerEdit.State.ResponseFromDatabase = None }, Cmd.none
         | None -> CustomerEdit.init()
-      { currentState with PageState = CustomerEditState nextEditState }, Cmd.ofMsg (CustomerEdit.CustomerIdFound customerId) |> Cmd.map CustomerEditMessage
+      { currentState with PageState = CustomerEditState nextEditState; ListingPageState = nextListingState }, Cmd.ofMsg (CustomerEdit.CustomerIdFound customerId) |> Cmd.map CustomerEditMessage
     | _, true, Some customerId ->
       let nextViewState, _ = CustomerView.init()
-      {currentState with PageState = CustomerViewState nextViewState }, Cmd.ofMsg (CustomerView.LoadCustomer customerId) |> Cmd.map CustomerViewMessage
+      {currentState with PageState = CustomerViewState nextViewState; ListingPageState = nextListingState }, Cmd.ofMsg (CustomerView.LoadCustomer customerId) |> Cmd.map CustomerViewMessage
     | _ , _ , _-> { currentState with PageState = ListingPageState nextListingState }, Cmd.map Message.ListingsMessage nextListingCommand
   | CustomerEditMessage msg, CustomerEditState state ->
-    let nextState, nextCommand = CustomerEdit.update msg state
-    { currentState with PageState = CustomerEditState nextState }, Cmd.map Message.CustomerEditMessage nextCommand
+    match msg with
+    | CustomerEdit.Message.CloseScreen ->
+        { currentState with PageState = ListingPageState currentState.ListingPageState },
+            Cmd.ofMsg (Listings.Message.ToggleEditScreen 0) |> Cmd.map ListingsMessage
+    | _ -> let nextState, nextCommand = CustomerEdit.update msg state
+           { currentState with PageState = CustomerEditState nextState }, Cmd.map Message.CustomerEditMessage nextCommand
   | CustomerCreateMessage msg, CustomerCreateState state ->
     let nextState, nextCommand = CustomerCreate.update msg state
     { currentState with PageState = CustomerCreateState nextState }, Cmd.map Message.CustomerCreateMessage nextCommand
   | CustomerViewMessage msg, CustomerViewState state ->
-    let nextState, nextCommand = CustomerView.update msg state
-    { currentState with PageState = CustomerViewState nextState }, nextCommand |> Cmd.map CustomerViewMessage
+    match msg with
+    | CustomerView.Message.CloseViewScreen ->
+        { currentState with PageState = ListingPageState currentState.ListingPageState}, Cmd.ofMsg (Listings.Message.ToggleViewScreen 0) |> Cmd.map ListingsMessage
+    | _ -> let nextState, nextCommand = CustomerView.update msg state
+           { currentState with PageState = CustomerViewState nextState }, nextCommand |> Cmd.map CustomerViewMessage
   | AreaListUpdated areaList, HomePageState pageState ->
       { currentState with PageState = HomePageState { pageState with AreaList = Some areaList } },
       Cmd.OfAsync.perform Server.api.getGroupList () GroupListUpdated

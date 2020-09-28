@@ -35,7 +35,7 @@ module CustomerEdit =
     Physical2 = ""
     Physical3 = ""
     DeliveryEmail = ""  }
-    
+
   type State = {
     isLoading: bool
     CurrentCustomerId: int option
@@ -49,7 +49,6 @@ module CustomerEdit =
     SelectedRep: int option
     RepCode: string
     SelectedGroup: int option
-    GroupCode: string
     PricelistCode: string
     SelectedPricelist: int option
     DetailForm : formData
@@ -65,7 +64,6 @@ module CustomerEdit =
     | AreaCodeSelected of int
     | SalesRepChanged of string
     | SalesRepSelected of int
-    | GroupChanged of string
     | GroupSelected of int
     | PricelistChanged of string
     | PricelistSelected of int
@@ -89,6 +87,7 @@ module CustomerEdit =
     | SaveChangesToDatabase
     | SaveChangesCompleted of string
     | ExceptionReceived of System.Exception
+    | CloseScreen
 
   let init () : State * _ =
     { AreaList = []
@@ -102,7 +101,6 @@ module CustomerEdit =
       SelectedRep = None
       RepCode = ""
       SelectedGroup = None
-      GroupCode = ""
       SelectedPricelist = None
       PricelistCode = ""
       isLoading = false
@@ -118,7 +116,6 @@ module CustomerEdit =
     match msg with
     | AreaCodeChanged       s ->  if s.Length = 0 then { currentState with SelectedArea   = None; AreaCode = ""}, Cmd.none  else { currentState with AreaCode = s}, Cmd.none
     | SalesRepChanged       s ->  if s.Length = 0 then { currentState with SelectedRep    = None; RepCode = ""}, Cmd.none    else { currentState with RepCode = s}, Cmd.none
-    | GroupChanged          s ->  if s.Length = 0 then { currentState with SelectedGroup  = None; GroupCode = ""}, Cmd.none  else { currentState with GroupCode = s}, Cmd.none
     | PricelistChanged      s ->  if s.Length = 0 then { currentState with SelectedPricelist = None; PricelistCode = s}, Cmd.none  else { currentState with PricelistCode = s}, Cmd.none
     | AreaCodeSelected      s ->  { currentState with SelectedArea = Some s }, Cmd.none
     | SalesRepSelected      s ->  { currentState with SelectedRep = Some s }, Cmd.none
@@ -193,11 +190,12 @@ module CustomerEdit =
 
   let view (state : State) (dispatch : Message -> unit) =
     match state.CurrentCustomerId with
-    | Some customerId -> 
+    | Some customerId ->
       Mui.formGroup [
         Mui.card [
           Mui.cardContent [
           cardContent.children [
+            Buttons.secondaryButtonLarge "BACK" (fun _ -> dispatch CloseScreen)
             Mui.typography [
               typography.variant.h4
               typography.color.secondary
@@ -207,13 +205,12 @@ module CustomerEdit =
             Mui.container [
               prop.className "paper"
               container.children [
+                Mui.typography (sprintf "Currently: %A, choose new option below" (selectedGroup state |> string))
                 Mui.autocomplete [
                   autocomplete.id "GroupId"
                   autocomplete.options (state.GroupList |> List.toArray)
                   autocomplete.value (selectedGroup state)
                   autocomplete.getOptionLabel (function Some (e: Group) -> e.Code | None -> "Unknown")
-                  autocomplete.inputValue state.GroupCode
-                  autocomplete.onInputChange (fun x -> dispatch (GroupChanged x))
                   autocomplete.onChange (fun (item: Group) -> dispatch (GroupSelected item.Id))
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
@@ -233,6 +230,7 @@ module CustomerEdit =
             Mui.container [
               prop.className "paper"
               container.children [
+              Mui.typography (sprintf "Currently: %A, choose new option below" (selectedRep state |> string))
               Mui.autocomplete [
                 autocomplete.id "SalesRep"
                 autocomplete.options (state.SalesRepList |> List.toArray)
@@ -259,18 +257,19 @@ module CustomerEdit =
             Mui.container [
               prop.className "paper"
               container.children [
+            Mui.typography (sprintf "Currently: %A, choose new option below" (selectedPriceList state |> string))
             Mui.autocomplete [
               autocomplete.id "Pricelist"
               autocomplete.options (state.PriceListList |> List.toArray)
               autocomplete.value (selectedPriceList state)
               autocomplete.getOptionLabel (function Some (e: PriceList) -> e.Name | None -> "Unknown")
-              autocomplete.inputValue state.PricelistCode
               autocomplete.onInputChange (fun x -> dispatch (PricelistChanged x))
               autocomplete.onChange (fun (item: PriceList) -> dispatch (PricelistSelected item.Id))
               autocomplete.renderInput (fun props -> Mui.textField [
                 textField.fullWidth true
                 textField.required true
-                textField.helperText " . " 
+                textField.value (selectedPriceList state)
+                textField.helperText " . "
                 textField.label "Pricelist"
                 textField.variant.outlined
                 yield! props.felizProps
@@ -307,7 +306,7 @@ module CustomerEdit =
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText " . " 
+                    textField.helperText " . "
                     textField.label "Market segment"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -331,7 +330,7 @@ module CustomerEdit =
                 autocomplete.renderInput (fun props -> Mui.textField [
                   textField.fullWidth true
                   textField.required true
-                  textField.helperText " . " 
+                  textField.helperText " . "
                   textField.label "Rep visit frequency"
                   textField.variant.outlined
                   yield! props.felizProps

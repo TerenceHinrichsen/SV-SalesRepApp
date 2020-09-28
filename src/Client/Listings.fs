@@ -110,16 +110,16 @@ module Listings =
               cardContent.children [
                 Mui.autocomplete [
                   autocomplete.id "AreaId"
+                  autocomplete.size.small
                   autocomplete.options (state.AreaList |> List.toArray)
                   autocomplete.value (selectedArea state)
                   autocomplete.getOptionLabel (function Some (e: Area) -> e.Code | None -> "Unknown")
                   autocomplete.inputValue state.AreaCode
-                  autocomplete.onInputChange (fun x -> dispatch (AreaCodeChanged x))
+                  autocomplete.onInputChange (AreaCodeChanged >> dispatch)
                   autocomplete.onChange (fun (item: Area) -> dispatch (AreaCodeSelected item.Id))
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText "Please select area from dropdown"
                     textField.label "Area code"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -144,16 +144,16 @@ module Listings =
               cardContent.children [
                 Mui.autocomplete [
                   autocomplete.id "SalesRep"
+                  autocomplete.size.small
                   autocomplete.options (state.SalesRepList |> List.toArray)
                   autocomplete.value (selectedRep state)
                   autocomplete.getOptionLabel (function Some (e: SalesRep) -> e.Code | None -> "Unknown")
                   autocomplete.inputValue state.RepCode
-                  autocomplete.onInputChange (fun x -> dispatch (SalesRepChanged x))
+                  autocomplete.onInputChange (SalesRepChanged >> dispatch)
                   autocomplete.onChange (fun (item: SalesRep) -> dispatch (SalesRepSelected item.Id))
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText "Please select rep from dropdown"
                     textField.label "Sales rep code"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -178,6 +178,7 @@ module Listings =
               cardContent.children [
                 Mui.autocomplete [
                   autocomplete.id "GroupId"
+                  autocomplete.size.small
                   autocomplete.options (state.GroupList |> List.toArray)
                   autocomplete.value (selectedGroup state)
                   autocomplete.getOptionLabel (function Some (e: Group) -> e.Code | None -> "Unknown")
@@ -187,7 +188,6 @@ module Listings =
                   autocomplete.renderInput (fun props -> Mui.textField [
                     textField.fullWidth true
                     textField.required true
-                    textField.helperText "Please select group from dropdown"
                     textField.label "Group code"
                     textField.variant.outlined
                     yield! props.felizProps
@@ -210,9 +210,9 @@ module Listings =
               cardContent.children [
                 Mui.textField [
                   textField.label "Customer search"
+                  textField.size.small
                   textField.fullWidth true
                   textField.variant.outlined
-                  textField.helperText "Enter any portion of text to search for. Fields searched are customer code, name and contact"
                   textField.onChange (CustomerSearchChanged >> dispatch)
                 ] ] ] ] ] ]
         Mui.grid [
@@ -228,6 +228,9 @@ module Listings =
             Mui.container [
               container.children [
                 if state.isLoading then Mui.linearProgress[] else Mui.hidden [hidden.xsUp true]  ] ]
-            CustomerTable.customerList (state.CustomerList |> Option.defaultValue List.empty) ( fun id _ -> dispatch (ToggleViewScreen id)) ( fun id _ -> dispatch (ToggleEditScreen id)) ]
+            CustomerTable.customerList
+                (state.CustomerList |> Option.defaultValue List.empty)
+                ( fun id _ -> dispatch (ToggleViewScreen id))
+                ( fun id _ -> dispatch (ToggleEditScreen id)) ]
         ]
       ] ]

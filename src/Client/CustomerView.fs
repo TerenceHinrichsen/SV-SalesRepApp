@@ -64,6 +64,11 @@ module CustomerView =
     | FetchProductMix
     | LoadProductMix of ProductMixDatapoint list
     | SaveCustomerVisit
+    | VisitSaved of unit
+    | RequestDeletion
+    | RequestArchive
+    | DeletionRequestResponse of unit
+    | CloseViewScreen
 
 
   let init () =
@@ -98,10 +103,15 @@ module CustomerView =
   let update (msg: Message) (state: State) =
     match msg with
     | LoadCustomer customerId -> { state with IsLoading = true }, Cmd.OfAsync.perform Server.api.getCustomerViewDetail customerId CustomerDetailLoaded
+    | RequestDeletion ->
+        state, Cmd.OfAsync.perform Server.api.markCustomerForDeletion (state.CurrentCustomerId |> Option.get, "App request") DeletionRequestResponse
+    | RequestArchive ->
+        state, Cmd.OfAsync.perform Server.api.markCustomerForArchive (state.CurrentCustomerId |> Option.get, "") DeletionRequestResponse
+    | DeletionRequestResponse _ -> state, Toast.successMessage 5000 "Request submitted for processing..."
     | CustomerDetailLoaded detail -> { state with IsLoading = false
                                                   CurrentCustomerId = Some detail.Id
                                                   Name          = detail.Name             |> Option.defaultValue "##ERROR##"
-                                                  GroupCode     = detail.Group            |> Option.defaultValue "##ERROR##"
+                                                  GroupCode     = detail.Group            |> Option.defaultValue "##UNKNOWN##"
                                                   AreaCode      = detail.Area             |> Option.defaultValue "##ERROR##"
                                                   AgeingPeriod  = detail.AgeingPeriod     |> Option.defaultValue "##ERROR##"
                                                   Rotation      = detail.Rotation         |> Option.defaultValue "##ERROR##"
@@ -165,7 +175,21 @@ module CustomerView =
         | Some tds -> { state with TodoState = Some { tds with PromisedDate = System.DateTime.Parse s} }, Cmd.none
         | None -> { state with TodoState = Some { Assignee = ""; Message = ""; PromisedDate = System.DateTime.Parse s; CustomerId = 0 }}, Cmd.none
     | SaveCustomerVisit ->
-        state, Toast.successMessage 5000 "Saved to database"
+        let initialCustomerVisitState, _ = CustomerVisit.init()
+        let requestData = {
+            CustomerId = state.CurrentCustomerId |> Option.get
+            VisitDate = state.VisitForm.Date |> System.DateTime.Parse
+            Rotation = state.VisitForm.Rotation
+            GYPercentage = state.VisitForm.GYPercentage |> int
+            GPPercentage = state.VisitForm.GPPercentage
+            OtherSupplier = state.VisitForm.OtherSupplier
+            Comments = state.VisitForm.GeneralComments
+        }
+        { state with ShowCustomerVisit = false; VisitForm = initialCustomerVisitState },
+        Cmd.OfAsync.perform Server.api.recordCustomerVisit requestData VisitSaved
+    | VisitSaved _ ->
+        state, Toast.successMessage 5000 "Customer visit recorded"
+    | CloseViewScreen -> state, Cmd.none
 
   let tableRows (list : TransDetail list) =
     list |> List.map ( fun x -> Mui.tableRow [
@@ -268,6 +292,7 @@ module CustomerView =
             match state.CurrentCustomerId with
             | Some customerId ->
                 Mui.paper [
+                    Buttons.secondaryButtonLarge "BACK" (fun _ -> dispatch CloseViewScreen)
                     Mui.expansionPanel [
                       expansionPanel.variant.outlined
                       expansionPanel.children [
@@ -279,7 +304,8 @@ module CustomerView =
                           expansionPanelDetails.children [
                             Buttons.primaryButton customerId "Add reminder" (fun _ -> dispatch (AddTodo customerId))
                             Buttons.primaryButton customerId "Record visit" (fun _ -> dispatch (ShowCustomerVisitScreen))
-                            Buttons.primaryButton customerId "Mark for deletion" (fun _ -> dispatch (AddTodo customerId))
+                            Buttons.secondaryButton customerId "Request account archive" (fun _ -> dispatch (RequestArchive))
+                            Buttons.secondaryButton customerId "Mark for deletion" (fun _ -> dispatch (RequestDeletion))
                             Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children [
                                             Mui.table [

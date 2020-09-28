@@ -41,6 +41,17 @@ html, body {
   margin: auto;
 }
 
+.green {
+    background-color:aquamarine;
+}
+
+.red {
+    background-color: darksalmon;
+}
+
+.tableHead {
+    background-color: azure;
+}
 .login {
   padding: 5px;
   margin: auto;
@@ -73,9 +84,12 @@ html, body {
 }
 
 .FullCard {
-  padding: 5px;
+  padding: 8px;
   margin: auto;
   width: 95%;
+  border-color: #8F99A3;
+  border-style: solid;
+  border-width: 1px;
 }
 
 .ThirdCard {
