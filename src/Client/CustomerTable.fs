@@ -50,6 +50,7 @@ module CustomerTable =
         Mui.tableBody [
           tableBody.children (
               customers
+              |> Seq.sortBy (fun x -> x.AccountStatus)
               |> Seq.map (fun customer -> customerRow customer (viewFunction customer.CustomerId) (editFunction customer.CustomerId)))
           ]
       ] ]

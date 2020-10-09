@@ -205,7 +205,12 @@ module CustomerEdit =
             Mui.container [
               prop.className "paper"
               container.children [
-                Mui.typography (sprintf "Currently: %A, choose new option below" (selectedGroup state |> string))
+                Mui.typography
+                    (sprintf "Currently: %A, choose new option below"
+                        (selectedGroup state |>
+                        (fun x -> match x with
+                                  | Some y -> y.Code
+                                  | None -> "None")))
                 Mui.autocomplete [
                   autocomplete.id "GroupId"
                   autocomplete.options (state.GroupList |> List.toArray)
@@ -230,7 +235,12 @@ module CustomerEdit =
             Mui.container [
               prop.className "paper"
               container.children [
-              Mui.typography (sprintf "Currently: %A, choose new option below" (selectedRep state |> string))
+              Mui.typography
+                (sprintf "Currently: %A, choose new option below"
+                    (selectedRep state |>
+                        (fun x -> match x with
+                                  | Some y -> y.Code
+                                  | None -> "None")))
               Mui.autocomplete [
                 autocomplete.id "SalesRep"
                 autocomplete.options (state.SalesRepList |> List.toArray)
@@ -257,7 +267,12 @@ module CustomerEdit =
             Mui.container [
               prop.className "paper"
               container.children [
-            Mui.typography (sprintf "Currently: %A, choose new option below" (selectedPriceList state |> string))
+            Mui.typography
+                (sprintf "Currently: %A, choose new option below"
+                    (selectedPriceList state |>
+                        (fun x -> match x with
+                                  | Some y -> y.Name
+                                  | None -> "None")))
             Mui.autocomplete [
               autocomplete.id "Pricelist"
               autocomplete.options (state.PriceListList |> List.toArray)
@@ -283,15 +298,15 @@ module CustomerEdit =
                                             prop.text option.Name ] )
                     listItemText.secondary option.Description ] ] ) ] ] ]
 
-            FormFields.textInput "Contact 1"  state.DetailForm.Contact1     (fun x -> dispatch ( Contact1Changed x) )
-            FormFields.textInput "Contact 2"  state.DetailForm.Contact2     (fun x -> dispatch ( Contact2Changed x) )
+            FormFields.textInput "Orders contact name"  state.DetailForm.Contact1     (fun x -> dispatch ( Contact1Changed x) )
+            FormFields.textInput "Manager/Owner name"  state.DetailForm.Contact2     (fun x -> dispatch ( Contact2Changed x) )
             FormFields.textInput "Telephone"  state.DetailForm.Telephone    (fun x -> dispatch ( TelephoneChanged x) )
             FormFields.textInput "Cellular"   state.DetailForm.Cell         (fun x -> dispatch ( CellChanged x) )
             FormFields.emailInput "Email"      state.DetailForm.Email        (fun x -> dispatch ( EmailChanged x) )
             FormFields.textInput "Physical 1" state.DetailForm.Physical1    (fun x -> dispatch ( Physical1Changed x) )
             FormFields.textInput "Physical 2" state.DetailForm.Physical2    (fun x -> dispatch ( Physical2Changed x) )
-            FormFields.textInput "Physical 3" state.DetailForm.Physical3    (fun x -> dispatch ( Physical3Changed x) )
-            FormFields.emailInput "Delivery email" state.DetailForm.DeliveryEmail (fun x -> dispatch ( DeliveryEmailChanged x) )
+            FormFields.textInput "Physical 3 (suburb / town)" state.DetailForm.Physical3    (fun x -> dispatch ( Physical3Changed x) )
+            FormFields.emailInput "Order confirmation email" state.DetailForm.DeliveryEmail (fun x -> dispatch ( DeliveryEmailChanged x) )
 
             Mui.container [
               prop.className "paper"

@@ -80,18 +80,19 @@ type TransDetail = {
 }
 
 type CustomerDisplayDetail = {
-  Id: int
-  Name: string option
+  Id:    int
+  Name:  string option
   Group: string option
-  Area: string option
+  Area:  string option
   AgeingPeriod: string option
-  Rotation: string option
+  Rotation:     string option
   GYPercentage: string option
   GPPercentage: string option
   OtherSuppliers: string option
   LastRepVisit: string option
   LastInvoiceDate: string option
   GeneralComments: string option
+  Telephone: string option
   Last5Invoices : TransDetail list
   Last5Credits : TransDetail list
 }
@@ -163,6 +164,8 @@ type NewAccountData = {
   MarketSegment: string
   Email: string
   RepId: int
+  TaxNumber : string
+  RegistrationNumber : string
 }
 
 type CustomerVisitData = {

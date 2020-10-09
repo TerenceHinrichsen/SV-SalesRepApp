@@ -62,6 +62,7 @@ module Customer =
     LastRepVisit: string option
     LastInvoiceDate: string option
     GeneralComments: string option
+    Telephone : string option
     }
 
     type TransactionDetail = {
@@ -365,7 +366,7 @@ module Customer =
   let newAccountApplication (customerName : string) (customerDescription : string) (groupId: int ) (repId: int ) (pricelistId: int )
     (contact1: string ) (contact2: string ) (telephone: string ) (cell: string ) (email: string ) (physical1: string) (physical2: string)
     (physical3: string) (deliveryEmail: string) (marketSegment: string)  (repVisitFreq: string) (areaId: int)
-    (gps: string) (postCode: string) (fax: string)
+    (gps: string) (postCode: string) (fax: string) (taxNumber: string) (registrationNumber: string)
         =
     registerOptionTypes()
     let sql = SqlScripts.CreateCustomer
@@ -396,7 +397,9 @@ module Customer =
                             "DeliveryEmail"       => deliveryEmail
                             "MarketSegment"       => marketSegment
                             "Email"               => email
-                            "RepId"               => repId ]
+                            "RepId"               => repId
+                            "TaxNumber"           => taxNumber
+                            "RegistrationNumber"  => registrationNumber ]
     try
       try
         connection.Query<unit>(sql, parameters, transaction = transaction) |> ignore

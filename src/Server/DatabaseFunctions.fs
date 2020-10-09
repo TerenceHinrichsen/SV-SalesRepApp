@@ -160,6 +160,7 @@ module DbFunctions =
       LastRepVisit = x.LastRepVisit
       LastInvoiceDate = x.LastInvoiceDate
       GeneralComments = x.GeneralComments
+      Telephone = x.Telephone
       Last5Invoices = invoices
       Last5Credits = credits }) |> List.head
 
@@ -201,6 +202,8 @@ module DbFunctions =
       newAccDetail.GPS
       newAccDetail.PostCode
       newAccDetail.Fax
+      newAccDetail.TaxNumber
+      newAccDetail.RegistrationNumber
 
   let fetchCustomerSpecials customerId =
     Customer.fetchSpecials customerId

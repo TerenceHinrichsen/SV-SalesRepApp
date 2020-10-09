@@ -603,12 +603,12 @@ INSERT INTO dbo.NewAccountApplication
 (
 	AccountName   , AccountDescription  , AreaId  , GroupId  , PriceListId  , Physical  , Physical2  , Suburb
   , GPS  , PostalCode  , Telephone  , Cellphone  , Fax  , RepVisitFreq  , Contact_Person  , Delivered_To  , DeliveryEmail
-  , MarketSegment  , Email  , RepId  , Processed  , ReceivedOnDateTime)
+  , MarketSegment  , Email  , RepId  , Processed  , ReceivedOnDateTime, TaxNumber, RegistrationNumber)
 VALUES
 (	@AccountName		  , @AccountDescription	  , @AreaId  , @GroupId  , @PriceListId
   , @Physical1  , @Physical2  , @Suburb  , @GPS  , @PostCode  , @Telephone
   , @Cellphone  , @Fax  , @RepVisitFreq  , @Contact_Person  , @DeliverTo  , @DeliveryEmail  , @MarketSegment
-  , @Email  , @RepId  , 0 , SYSDATETIME()
+  , @Email  , @RepId  , 0 , SYSDATETIME(), @TaxNumber, @RegistrationNumber
 )
   """
 
@@ -632,6 +632,7 @@ SELECT Id			   = c.CustomerId
 	 , LastRepVisit	   = FORMAT(c.udARLastVisit, 'yyyy-MM-dd')
 	 , LastInvoiceDate = FORMAT(li.LastTransactionDate,'yyyy-MM-dd')
 	 , GeneralComments = c.GeneralComments
+     , Telephone       = c.Telephone
 FROM   Customer c
 LEFT JOIN LastInvoiceByCustomer li ON c.CustomerId = li.CustomerId
 WHERE c.CustomerId = @customerId

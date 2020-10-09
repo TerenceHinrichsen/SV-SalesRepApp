@@ -24,6 +24,8 @@ module CustomerCreate =
     PostCode: string
     GPS: string
     DeliveryEmail: string
+    TaxNumber : string
+    RegistrationNumber: string
   }
 
   let emptyForm = {
@@ -40,8 +42,10 @@ module CustomerCreate =
     Suburb               = ""
     PostCode             = ""
     GPS                  = ""
+    TaxNumber            = ""
+    RegistrationNumber   = ""
     DeliveryEmail        = ""  }
-    
+
   type State = {
     isLoading: bool
     CurrentCustomerId: int option
@@ -94,6 +98,8 @@ module CustomerCreate =
     | MarketSegmentSelected of string
     | SaveChangesToDatabase
     | SaveChangesCompleted of string
+    | TaxNumberChanged of string
+    | RegistrationNumberChanged of string
 
   let init () : State * _ =
     { AreaList = []
@@ -143,6 +149,8 @@ module CustomerCreate =
                                                                       Fax = ""
                                                                       PostCode = ""
                                                                       GPS = ""
+                                                                      TaxNumber = ""
+                                                                      RegistrationNumber = ""
                                                                       DeliveryEmail = s.DeliveryEmail |> Option.defaultValue "" };
                                                                       SelectedArea = s.AreaId;
                                                                       SelectedRep = s.SalesRepId;
@@ -153,6 +161,8 @@ module CustomerCreate =
     | CustomerNameChanged   s ->  { currentState with DetailForm = { currentState.DetailForm with CustomerName = s }}, Cmd.none
     | Contact1Changed       s ->  { currentState with DetailForm = { currentState.DetailForm with Contact1 = s }}, Cmd.none
     | Contact2Changed       s ->  { currentState with DetailForm = { currentState.DetailForm with DeliveryContact = s }}, Cmd.none
+    | TaxNumberChanged      s ->  { currentState with DetailForm = { currentState.DetailForm with TaxNumber = s }}, Cmd.none
+    | RegistrationNumberChanged s ->  { currentState with DetailForm = { currentState.DetailForm with RegistrationNumber = s }}, Cmd.none
     | TelephoneChanged      s ->  { currentState with DetailForm = { currentState.DetailForm with Telephone = s }}, Cmd.none
     | CellChanged           s ->  { currentState with DetailForm = { currentState.DetailForm with Cell = s }}, Cmd.none
     | EmailChanged          s ->  { currentState with DetailForm = { currentState.DetailForm with Email = s }}, Cmd.none
@@ -185,9 +195,13 @@ module CustomerCreate =
                                       DeliveryEmail =  currentState.DetailForm.DeliveryEmail
                                       MarketSegment =  currentState.SelectedMarketSegment
                                       RepVisitFreq =  currentState.SelectedRepVisitFrequency
+                                      TaxNumber = currentState.DetailForm.TaxNumber
+                                      RegistrationNumber = currentState.DetailForm.RegistrationNumber
                                       AreaId = currentState.SelectedArea |> Option.defaultValue 0
                                    } SaveChangesCompleted
-    | SaveChangesCompleted s -> { currentState with ResponseFromDatabase = Some s }, Toast.successMessage 5000 "Request saved"
+    | SaveChangesCompleted s ->
+        let initState, _ = init()
+        { initState with ResponseFromDatabase = Some s }, Toast.successMessage 5000 "Request saved"
     | _ -> currentState, Cmd.none
 
   let selectedArea state =
@@ -212,7 +226,7 @@ module CustomerCreate =
             typography.color.secondary
             typography.children ( sprintf "Creating new customer" ) ]
           FormFields.textInput "Name" state.DetailForm.CustomerName (fun x -> dispatch (CustomerNameChanged x) )
-    
+
           Mui.container [
             prop.className "paper"
             container.children [
@@ -239,6 +253,34 @@ module CustomerCreate =
                                               prop.key option.Id
                                               prop.text option.Code ] )
                       listItemText.secondary option.Description ] ] ) ] ] ]
+
+          Mui.container [
+            prop.className "paper"
+            container.children [
+              Mui.autocomplete [
+                autocomplete.id "AreaId"
+                autocomplete.options (state.AreaList |> List.toArray)
+                autocomplete.value (selectedArea state)
+                autocomplete.getOptionLabel (function Some (e: Group) -> e.Code | None -> "Unknown")
+                autocomplete.inputValue state.AreaCode
+                autocomplete.onInputChange (fun x -> dispatch (AreaCodeChanged x))
+                autocomplete.onChange (fun (item: Area) -> dispatch (AreaCodeSelected item.Id))
+                autocomplete.renderInput (fun props -> Mui.textField [
+                  textField.fullWidth true
+                  textField.required true
+                  textField.label "Area code"
+                  textField.variant.outlined
+                  yield! props.felizProps
+                ] )
+                autocomplete.renderOption (fun (option: Area) _ ->
+                  Mui.listItem [
+                    Mui.listItemText [
+                      listItemText.primary (
+                                            Html.span [
+                                              prop.key option.Id
+                                              prop.text option.Code ] )
+                      listItemText.secondary option.Description ] ] ) ] ] ]
+
           Mui.container [
             prop.className "paper"
             container.children [
@@ -279,7 +321,7 @@ module CustomerCreate =
             autocomplete.renderInput (fun props -> Mui.textField [
               textField.fullWidth true
               textField.required true
-              textField.helperText " . " 
+              textField.helperText " . "
               textField.label "Pricelist"
               textField.variant.outlined
               yield! props.felizProps
@@ -292,17 +334,19 @@ module CustomerCreate =
                                           prop.key option.Id
                                           prop.text option.Name ] )
                   listItemText.secondary option.Description ] ] ) ] ] ]
-    
-          FormFields.textInput  "Contact 1"  state.DetailForm.Contact1          (fun x -> dispatch ( Contact1Changed x) )
-          FormFields.textInput  "Contact 2"  state.DetailForm.DeliveryContact   (fun x -> dispatch ( Contact2Changed x) )
-          FormFields.textInput  "Telephone"  state.DetailForm.Telephone         (fun x -> dispatch ( TelephoneChanged x) )
-          FormFields.textInput  "Cellular"   state.DetailForm.Cell              (fun x -> dispatch ( CellChanged x) )
-          FormFields.emailInput "Email"      state.DetailForm.Email             (fun x -> dispatch ( EmailChanged x) )
-          FormFields.textInput  "Physical 1" state.DetailForm.Physical1         (fun x -> dispatch ( Physical1Changed x) )
-          FormFields.textInput  "Physical 2" state.DetailForm.Physical2         (fun x -> dispatch ( Physical2Changed x) )
-          FormFields.textInput  "Physical 3" state.DetailForm.Suburb            (fun x -> dispatch ( Physical3Changed x) )
-          FormFields.emailInput "Delivery email" state.DetailForm.DeliveryEmail (fun x -> dispatch ( DeliveryEmailChanged x) )
-    
+
+          FormFields.textInput "Orders contact name" state.DetailForm.Contact1          (fun x -> dispatch ( Contact1Changed x) )
+          FormFields.textInput "Manager/Owner name"  state.DetailForm.DeliveryContact   (fun x -> dispatch ( Contact2Changed x) )
+          FormFields.textInput "Tax number"          state.DetailForm.TaxNumber (fun x -> dispatch ( TaxNumberChanged x) )
+          FormFields.textInput "Registration number" state.DetailForm.RegistrationNumber (fun x -> dispatch ( RegistrationNumberChanged x) )
+          FormFields.textInput "Telephone"           state.DetailForm.Telephone         (fun x -> dispatch ( TelephoneChanged x) )
+          FormFields.textInput "Cellular"            state.DetailForm.Cell              (fun x -> dispatch ( CellChanged x) )
+          FormFields.emailInput "Email"              state.DetailForm.Email             (fun x -> dispatch ( EmailChanged x) )
+          FormFields.textInput "Physical 1"          state.DetailForm.Physical1         (fun x -> dispatch ( Physical1Changed x) )
+          FormFields.textInput "Physical 2"          state.DetailForm.Physical2         (fun x -> dispatch ( Physical2Changed x) )
+          FormFields.textInput "Physical 3 (Suburb /Town)" state.DetailForm.Suburb      (fun x -> dispatch ( Physical3Changed x) )
+          FormFields.emailInput "Order confirmation email" state.DetailForm.DeliveryEmail (fun x -> dispatch ( DeliveryEmailChanged x) )
+
           Mui.container [
             prop.className "paper"
             container.children [
@@ -312,11 +356,11 @@ module CustomerCreate =
                 autocomplete.value state.SelectedMarketSegment
                 autocomplete.inputValue state.SelectedMarketSegment
                 autocomplete.onInputChange (fun x -> dispatch (MarketSegmentSelected x))
-                autocomplete.onChange (fun x -> dispatch (MarketSegmentSelected x))
+                autocomplete.onChange      (fun x -> dispatch (MarketSegmentSelected x))
                 autocomplete.renderInput (fun props -> Mui.textField [
                   textField.fullWidth true
                   textField.required true
-                  textField.helperText " . " 
+                  textField.helperText " . "
                   textField.label "Market segment"
                   textField.variant.outlined
                   yield! props.felizProps
@@ -340,7 +384,7 @@ module CustomerCreate =
               autocomplete.renderInput (fun props -> Mui.textField [
                 textField.fullWidth true
                 textField.required true
-                textField.helperText " . " 
+                textField.helperText " . "
                 textField.label "Rep visit frequency"
                 textField.variant.outlined
                 yield! props.felizProps
@@ -352,5 +396,22 @@ module CustomerCreate =
                                           Html.span [
                                             prop.key option
                                             prop.text option ] )  ] ] ) ] ] ]
+          Mui.container [
+              Mui.formControlLabel [
+                formControlLabel.control ( Mui.checkbox [ checkbox.required false ])
+                formControlLabel.label "Owner Id"]
+              Mui.formControlLabel [
+                formControlLabel.control ( Mui.checkbox [ checkbox.required false ])
+                formControlLabel.label "Registration"]
+              Mui.formControlLabel [
+                formControlLabel.control ( Mui.checkbox [ checkbox.required false ])
+                formControlLabel.label "Vat registration"]
+              Mui.formControlLabel [
+                formControlLabel.control ( Mui.checkbox [ checkbox.required false ])
+                formControlLabel.label "Credit app"]
+              Mui.formControlLabel [
+                formControlLabel.control ( Mui.checkbox [ checkbox.required false ])
+                formControlLabel.label "Customer form"]
+          ]
           Buttons.secondaryButtonLarge "SAVE CHANGES TO EVOLUTION" (fun _ -> dispatch SaveChangesToDatabase)
         ] ] ] ]

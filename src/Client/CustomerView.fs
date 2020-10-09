@@ -4,6 +4,7 @@ open Components
 
 module CustomerView =
   open Elmish
+  open System
   open Feliz
   open Feliz.MaterialUI
   open Fable.MaterialUI
@@ -37,6 +38,7 @@ module CustomerView =
     ShowCustomerVisit : bool
     CustomerSpecials : CustomerSpecial list
     ProductMix : ProductMixDatapoint list
+    Telephone: string
    }
 
   type Message =
@@ -74,21 +76,21 @@ module CustomerView =
   let init () =
     let initialCustomerVisitState, _ = CustomerVisit.init()
     { CurrentCustomerId = None
-      Name = "##UNKNOWN##"
-      GroupCode = "##UNKNOWN##"
-      AreaCode  = "##UNKNOWN##"
-      AgeingPeriod = "##UNKNOWN##"
-      Rotation = "##UNKNOWN##"
-      GYPercentage = "##UNKNOWN##"
-      GPPercentage = "##UNKNOWN##"
+      Name          = "##UNKNOWN##"
+      GroupCode     = "##UNKNOWN##"
+      AreaCode      = "##UNKNOWN##"
+      AgeingPeriod  = "##UNKNOWN##"
+      Rotation      = "##UNKNOWN##"
+      GYPercentage  = "##UNKNOWN##"
+      GPPercentage  = "##UNKNOWN##"
       OtherSupplier = "##UNKNOWN##"
-      LastRepVisit = "##UNKNOWN##"
-      LastInvoice = "##UNKNOWN##"
-      Comments = "##UNKNOWN##"
-      InvoiceList = List.Empty
-      CreditList = List.Empty
-      IsLoading = true
-      Sales = List.Empty
+      LastRepVisit  = "##UNKNOWN##"
+      LastInvoice   = "##UNKNOWN##"
+      Comments      = "##UNKNOWN##"
+      InvoiceList   = List.Empty
+      CreditList    = List.Empty
+      IsLoading     = true
+      Sales         = List.Empty
       SalesGraphLoading = true
       SalesGraphLoaded = false
       VisitForm = initialCustomerVisitState
@@ -98,6 +100,7 @@ module CustomerView =
       ShowCustomerVisit = false
       CustomerSpecials = List.Empty
       ProductMix = List.empty
+      Telephone = ""
     }, Cmd.none
 
   let update (msg: Message) (state: State) =
@@ -121,6 +124,7 @@ module CustomerView =
                                                   LastInvoice   = detail.LastInvoiceDate  |> Option.defaultValue "##ERROR##"
                                                   LastRepVisit  = detail.LastRepVisit     |> Option.defaultValue "##ERROR##"
                                                   Comments      = detail.GeneralComments  |> Option.defaultValue "##ERROR##"
+                                                  Telephone     = detail.Telephone        |> Option.defaultValue "..."
                                                   InvoiceList   = detail.Last5Invoices
                                                   CreditList    = detail.Last5Credits
                                                   }, Cmd.OfAsyncImmediate.perform Server.api.getLast5Invoices detail.Id LoadLastTransactions
@@ -207,18 +211,26 @@ module CustomerView =
         Mui.tableHead [
             Mui.tableCell "Item description"
             Mui.tableCell "Start date"
+            Mui.tableCell "End date"
             Mui.tableCell "Dozen price"
             Mui.tableCell "Unit price"
         ]
         Mui.tableBody (
             list
             |> List.sortBy (fun x -> x.ItemCode)
-            |> List.map (fun x -> Mui.tableRow [
-              tableRow.children [
-                Mui.tableCell (x.ItemDescription)
-                Mui.tableCell (x.EffectiveDate.ToShortDateString())
-                Mui.tableCell (x.DozenPrice.ToString("0.00"))
-                Mui.tableCell (x.UnitPrice.ToString("0.00")) ]
+            |> List.map (fun x ->
+              let backgroundColour =
+                match x.ContractType with
+                | "Group" -> "blue"
+                | _ -> "green"
+              Mui.tableRow [
+                  tableRow.classes.root backgroundColour
+                  tableRow.children [
+                    Mui.tableCell (x.ItemDescription)
+                    Mui.tableCell (x.EffectiveDate.ToShortDateString())
+                    Mui.tableCell (x.ExpiryDate.ToShortDateString())
+                    Mui.tableCell (x.DozenPrice.ToString("C2"))
+                    Mui.tableCell (x.UnitPrice.ToString("C2")) ]
     ]) ) ] ] ] ]
 
   type PieSlice = { name: string; value : int }
@@ -312,6 +324,7 @@ module CustomerView =
                                               table.size.small
                                               table.children [
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Customer name"; Mui.tableCell state.Name] ]
+                                              Mui.tableRow [ tableRow.children [ Mui.tableCell "Telephone"; Mui.tableCell state.Telephone] ]
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Group" ; Mui.tableCell state.GroupCode ] ]
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Area" ; Mui.tableCell state.AreaCode ] ]
                                               Mui.tableRow [ tableRow.children [ Mui.tableCell "Ageing period" ; Mui.tableCell state.AgeingPeriod ] ]
