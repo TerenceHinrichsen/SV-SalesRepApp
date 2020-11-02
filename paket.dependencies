@@ -1,44 +1,52 @@
-source https://www.nuget.org/api/v2
+group Main
+  
+  source https://api.nuget.org/v3/index.json
 
-nuget Elmish.Toastr
-nuget Feliz.MaterialUI
-group Server
-    source https://api.nuget.org/v3/index.json
-    framework: netcoreapp3.0
-    storage: none
+  storage: none
+  framework: netcore3.1, netstandard2.1, netstandard2.0
 
-    nuget FSharp.Core
-    nuget Giraffe
-    nuget Fable.Remoting.Giraffe ~> 3
-    nuget Microsoft.ApplicationInsights.AspNetCore
-    nuget WindowsAzure.Storage
+  nuget coverlet.collector        
+  nuget Dapper                    
+  nuget FsCheck                   
+  nuget FsCheck.Xunit             
+  nuget FSharp.Core               4.7.2
+  nuget FSharp.Data               
+  nuget FsToolkit.ErrorHandling   
+  nuget FsUnit.xUnit              
+  nuget Microsoft.NET.Test.Sdk  
+  nuget NETStandard.Library       
+  nuget Newtonsoft.Json         
+  nuget Serilog                  
+  nuget Serilog.Sinks.Console   
+  nuget Serilog.Sinks.File      
+  nuget Serilog.Sinks.MSSqlServer 
+  nuget System.Data.SqlClient   
+  nuget Unquote              
+  nuget xunit                 
+  nuget xunit.runner.visualstudio 
+  nuget Saturn               
+  nuget Thoth.Json.Giraffe     
+  nuget Fable.FontAwesome.Free
 
-group Client
-    source https://api.nuget.org/v3/index.json
-    framework: netstandard2.0
-    storage: none
+  nuget Elmish.Toastr          
+  nuget Fable.Browser.Navigator 
+  nuget Fable.Browser.Worker   
+  nuget Fable.Core            
+  nuget Fable.Elmish        
+  nuget Fable.Elmish.Browser 
+  nuget Fable.Elmish.Debugger 
+  nuget Fable.Elmish.HMR     
+  nuget Fable.Elmish.React  
+  nuget Fable.MaterialUI.Icons 
+  nuget Fable.MaterialUI.MaterialDesignIcons
+  nuget Fable.Remoting.Client 
+  nuget Feliz                
+  nuget Farmer              
+  nuget Feliz.MaterialUi
+  nuget Feliz.Recharts
+  nuget Fake.Core.Target
+  nuget Fake.DotNet.Cli
+  nuget Fake.IO.FileSystem
+  nuget Fake.Core.ReleaseNotes
 
-    nuget Fable.Core ~> 3
-    nuget Fable.Elmish ~> 3
-    nuget Fable.Elmish.Debugger ~> 3
-    nuget Fable.Elmish.HMR ~> 4
-    nuget Fable.Elmish.React ~> 3
-    nuget Fable.React ~> 5
-    nuget Fable.Remoting.Client ~> 5
-    nuget Fulma ~> 2
-    nuget Fable.FontAwesome.Free ~> 2
-
-group Build
-    source https://api.nuget.org/v3/index.json
-    framework: netstandard2.0
-    storage: none
-
-    nuget FSharp.Core
-    nuget Fake.Core.ReleaseNotes
-    nuget Fake.Core.Target
-    nuget Fake.DotNet.Cli
-    nuget Fake.IO.FileSystem
-    nuget Fake.Core.Environment
-    nuget Fake.Core.Trace
-    nuget Fake.IO.Zip
-    github CompositionalIT/fshelpers src/FsHelpers/ArmHelper/ArmHelper.fs
+  nuget Fable.Remoting.Giraffe 

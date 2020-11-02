@@ -1,13 +1,13 @@
-namespace DatabaseInterface 
+namespace DatabaseInterface
 open Configuration
 open Dapper
 open System.Data.SqlClient
 open Helpers
 
-module Todo = 
+module Todo =
 
 
-  let CreateNew customerId assignee message promisedDate =
+  let CreateNew customerId assignee message promisedDate requestedBy =
     registerOptionTypes()
     let sql = SqlScripts.CreateNewTodo
     let connection = new SqlConnection(sqlConnectionString)
@@ -17,7 +17,8 @@ module Todo =
     let parameters = dict [ "CustomerId"    => customerId
                             "Assignee"      => assignee
                             "Message"       => message
-                            "PromisedDate"  => promisedDate ]
+                            "PromisedDate"  => promisedDate
+                            "RequestedBy"   => requestedBy ]
     try
       try
         connection.Query<unit>(sql, parameters, transaction = transaction) |> ignore

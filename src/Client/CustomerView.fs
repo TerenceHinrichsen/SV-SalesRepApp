@@ -39,6 +39,7 @@ module CustomerView =
     CustomerSpecials : CustomerSpecial list
     ProductMix : ProductMixDatapoint list
     Telephone: string
+    CurrentUser: Shared.User
    }
 
   type Message =
@@ -73,7 +74,7 @@ module CustomerView =
     | CloseViewScreen
 
 
-  let init () =
+  let init user =
     let initialCustomerVisitState, _ = CustomerVisit.init()
     { CurrentCustomerId = None
       Name          = "##UNKNOWN##"
@@ -101,15 +102,16 @@ module CustomerView =
       CustomerSpecials = List.Empty
       ProductMix = List.empty
       Telephone = ""
+      CurrentUser = user
     }, Cmd.none
 
   let update (msg: Message) (state: State) =
     match msg with
     | LoadCustomer customerId -> { state with IsLoading = true }, Cmd.OfAsync.perform Server.api.getCustomerViewDetail customerId CustomerDetailLoaded
     | RequestDeletion ->
-        state, Cmd.OfAsync.perform Server.api.markCustomerForDeletion (state.CurrentCustomerId |> Option.get, "App request") DeletionRequestResponse
+        state, Cmd.OfAsync.perform Server.api.markCustomerForDeletion (state.CurrentCustomerId |> Option.get,  state.CurrentUser.Username) DeletionRequestResponse
     | RequestArchive ->
-        state, Cmd.OfAsync.perform Server.api.markCustomerForArchive (state.CurrentCustomerId |> Option.get, "") DeletionRequestResponse
+        state, Cmd.OfAsync.perform Server.api.markCustomerForArchive (state.CurrentCustomerId |> Option.get, state.CurrentUser.Username) DeletionRequestResponse
     | DeletionRequestResponse _ -> state, Toast.successMessage 5000 "Request submitted for processing..."
     | CustomerDetailLoaded detail -> { state with IsLoading = false
                                                   CurrentCustomerId = Some detail.Id
@@ -160,6 +162,7 @@ module CustomerView =
                                             CustomerId = customerId;
                                             Assignee = ""
                                             Message = ""
+                                            RequestedBy = state.CurrentUser.Username
                                             PromisedDate = System.DateTime.Now } }, Cmd.none
     | SaveToDo -> { state with ShowToDoScreen = false }, Cmd.OfAsync.either Server.api.addNewTodo state.TodoState.Value TodoSaved ExceptionReceived
     | TodoSaved string -> { state with TodoState = None }, Toast.successMessage 5000 string
@@ -169,15 +172,15 @@ module CustomerView =
     | AssigneeChanged s ->
         match state.TodoState with
         | Some tds -> { state with TodoState = Some { tds with Assignee = s} }, Cmd.none
-        | None -> { state with TodoState = Some { Assignee = s; Message = ""; PromisedDate = System.DateTime.Now; CustomerId = 0 }}, Cmd.none
+        | None -> { state with TodoState = Some { Assignee = s; Message = ""; PromisedDate = System.DateTime.Now; CustomerId = 0;  RequestedBy = state.CurrentUser.Username }}, Cmd.none
     | MessageChanged s ->
         match state.TodoState with
         | Some tds -> { state with TodoState = Some { tds with Message = s} }, Cmd.none
-        | None -> { state with TodoState = Some { Assignee = ""; Message = s; PromisedDate = System.DateTime.Now; CustomerId = 0 }}, Cmd.none
+        | None -> { state with TodoState = Some { Assignee = ""; Message = s; PromisedDate = System.DateTime.Now; CustomerId = 0; RequestedBy = state.CurrentUser.Username }}, Cmd.none
     | PromisedDateChanged s ->
         match state.TodoState with
         | Some tds -> { state with TodoState = Some { tds with PromisedDate = System.DateTime.Parse s} }, Cmd.none
-        | None -> { state with TodoState = Some { Assignee = ""; Message = ""; PromisedDate = System.DateTime.Parse s; CustomerId = 0 }}, Cmd.none
+        | None -> { state with TodoState = Some { Assignee = ""; Message = ""; PromisedDate = System.DateTime.Parse s; CustomerId = 0 ; RequestedBy = state.CurrentUser.Username}}, Cmd.none
     | SaveCustomerVisit ->
         let initialCustomerVisitState, _ = CustomerVisit.init()
         let requestData = {
@@ -307,6 +310,7 @@ module CustomerView =
                     Buttons.secondaryButtonLarge "BACK" (fun _ -> dispatch CloseViewScreen)
                     Mui.expansionPanel [
                       expansionPanel.variant.outlined
+                      expansionPanel.defaultExpanded true
                       expansionPanel.children [
                         Mui.expansionPanelSummary [
                           expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")

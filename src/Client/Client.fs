@@ -64,7 +64,7 @@ let init () : State * Cmd<Message> =
     let initialListingState, _ = Listings.init()
     let initialModel = {
         UserAuthenticated = false
-        LoggedOnUser = { UserId = 0; Username = "Unknown"}
+        LoggedOnUser = { UserId = 0; Username = "---"}
         DrawerState = initialDrawerState
         PageState = LoginPageState initialLoginPageState
         SearchFields = None
@@ -85,8 +85,8 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
     match nextState.LoginSuccess with
     | Some success ->
         if success then
-          let initHome, _  = Home.init()
-          {currentState with PageState = HomePageState initHome; LoggedOnUser = { UserId = 0; Username = nextState.Username}; UserAuthenticated = true} ,
+          let initHome, _  = Home.init {UserId = 0; Username = nextState.Username}
+          {currentState with PageState = HomePageState initHome; LoggedOnUser = { UserId = 0; Username = initHome.CurrentUser.Username}; UserAuthenticated = true} ,
           Cmd.OfAsync.perform Server.api.getAreaList () AreaListUpdated
         else { currentState with PageState = LoginPageState { nextState with LoginSuccess = None }}, Toast.errorMessage 5000 (System.Exception("Login failed"))
     | None -> { currentState with PageState = LoginPageState nextState }, Cmd.map Message.LoginPageMessage nextCommand
@@ -102,8 +102,9 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
           Home.State.PriceListList = x.PriceListList
           Home.State.SalesRepList = x.SalesRepList
           Home.State.MarketSegmentList = x.MarketSegments
-          Home.State.RepVisitFrequencies = x.RepVisitFrequencies }, Cmd.none
-        | None -> Home.init()
+          Home.State.RepVisitFrequencies = x.RepVisitFrequencies
+          Home.State.CurrentUser = currentState.LoggedOnUser }, Cmd.none
+        | None -> Home.init currentState.LoggedOnUser
       { currentState with PageState = HomePageState homeState; DrawerState = nextDrawerState }, nextDrawerCommand
     | MenuItem.CustomerListings ->
       let listingState, _ =
@@ -189,7 +190,7 @@ let update (msg : Message) (currentState : State) : State * Cmd<Message> =
         | None -> CustomerEdit.init()
       { currentState with PageState = CustomerEditState nextEditState; ListingPageState = nextListingState }, Cmd.ofMsg (CustomerEdit.CustomerIdFound customerId) |> Cmd.map CustomerEditMessage
     | _, true, Some customerId ->
-      let nextViewState, _ = CustomerView.init()
+      let nextViewState, _ = CustomerView.init currentState.LoggedOnUser
       {currentState with PageState = CustomerViewState nextViewState; ListingPageState = nextListingState }, Cmd.ofMsg (CustomerView.LoadCustomer customerId) |> Cmd.map CustomerViewMessage
     | _ , _ , _-> { currentState with PageState = ListingPageState nextListingState }, Cmd.map Message.ListingsMessage nextListingCommand
   | CustomerEditMessage msg, CustomerEditState state ->

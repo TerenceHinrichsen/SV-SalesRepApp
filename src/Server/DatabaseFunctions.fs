@@ -127,7 +127,7 @@ module DbFunctions =
       updateData.RepVisitFreq
 
   let addTodo (todo: Todo) =
-    Todo.CreateNew todo.CustomerId todo.Assignee todo.Message todo.PromisedDate
+    Todo.CreateNew todo.CustomerId todo.Assignee todo.Message todo.PromisedDate todo.RequestedBy
 
   let fetchLast5Invoices customerId =
     Customer.fetchLast5Invoices customerId

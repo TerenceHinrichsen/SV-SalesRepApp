@@ -585,12 +585,14 @@ INSERT INTO dbo.Todo
   , Assignee
   , Message
   , PromisedDate
+  , RequestedBy
 )
 SELECT
 	@CustomerId
   , @Assignee
   , @Message
   , @PromisedDate
+  , @RequestedBy
     """
 
 let CreateCustomer =

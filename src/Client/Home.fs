@@ -15,18 +15,20 @@ module Home =
     SalesRepList: SalesRep list option
     MarketSegmentList: string list option
     RepVisitFrequencies: string list option
+    CurrentUser: Shared.User
   }
 
   type Message =
     ChangeMenu of Drawer.MenuItem
 
-  let init () : State * _ =
+  let init user : State * _ =
     { AreaList = None
       GroupList = None
       PriceListList = None
       SalesRepList = None
       MarketSegmentList = None
       RepVisitFrequencies = None
+      CurrentUser = user
     }, Cmd.none
 
   let update _ (currentState : State) : State * _ =
@@ -48,7 +50,7 @@ module Home =
                 typography.variant.h5
                 typography.color.primary
                 typography.classes.root "AppTitle"
-                typography.children("Welcome, choose option or use menu on left")
+                typography.children(sprintf "Welcome %s, choose option or use menu on left" state.CurrentUser.Username)
               ]
               Mui.buttonGroup [
                buttonGroup.size.large

@@ -34,7 +34,7 @@ module ChangeHistory =
         Add current rep, group and pricelist to Customer Edit screen.
         "
         ; DateTime = System.DateTime(2020,09,13)}
-
+        { Version = "1.1.1"; Change = "Record visit fields added to New Customer Account Application. Changes to GP % column for funny behaviour when deleting."; DateTime = System.DateTime(2020,10,15)}
     ]
     }, Cmd.none
 

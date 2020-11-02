@@ -15,6 +15,7 @@ type Todo = {
   Assignee : string
   Message : string
   PromisedDate: System.DateTime
+  RequestedBy: string
 }
 
 type ProductMixDatapoint = {

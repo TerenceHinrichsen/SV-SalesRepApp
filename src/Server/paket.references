@@ -1,4 +1,21 @@
-group Server
-    FSharp.Core
-    Giraffe
-    Fable.Remoting.Giraffe
+Saturn
+Fable.Remoting.Giraffe
+Giraffe
+Fable.Remoting.Server
+Elmish.Toastr          
+Fable.Browser.Navigator 
+Fable.Browser.Worker   
+Fable.Core            
+Fable.Elmish        
+Fable.Elmish.Browser 
+Fable.Elmish.Debugger 
+Fable.Elmish.HMR     
+Fable.Elmish.React  
+Fable.MaterialUI.Icons 
+Fable.MaterialUI.MaterialDesignIcons
+Feliz                
+       
+Fake.Core.Target
+Fake.DotNet.Cli
+Fake.IO.FileSystem
+Fake.Core.ReleaseNotes

@@ -1,14 +1,9 @@
 open System
-open System.IO
-open System.Threading.Tasks
 
-open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 
-open FSharp.Control.Tasks.V2
 open Giraffe
 open Shared
 
@@ -16,17 +11,7 @@ open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 
 open Database
-
-let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
-
-let publicPath =
-  tryGetEnv "public_path"
-  |> Option.defaultValue "../Client/public"
-  |> Path.GetFullPath
-
-let port =
-    "SERVER_PORT"
-    |> tryGetEnv |> Option.map uint16 |> Option.defaultValue 8085us
+open Saturn
 
 let successApi = {
   getCustomerById                    = fun (value)   -> async { return DbFunctions.getCustomerById value }
@@ -70,21 +55,12 @@ let webApp =
     |> Remoting.buildHttpHandler
 
 
-let configureApp (app : IApplicationBuilder) =
-    app.UseDefaultFiles()
-       .UseStaticFiles()
-       .UseGiraffe webApp
-
-let configureServices (services : IServiceCollection) =
-    services.AddGiraffe() |> ignore
-
-WebHost
-    .CreateDefaultBuilder()
-    .UseWebRoot(publicPath)
-    .UseContentRoot(publicPath)
-    .Configure(Action<IApplicationBuilder> configureApp)
-    .ConfigureServices(configureServices)
-    .UseIISIntegration()
-    .UseUrls("http://0.0.0.0:" + port.ToString() + "/")
-    .Build()
-    .Run()
+let app =
+    application {
+        url "http://0.0.0.0:8085"
+        use_router webApp
+        memory_cache
+        use_static "public"
+        use_gzip
+    }
+run app
