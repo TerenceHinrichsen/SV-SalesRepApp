@@ -37,6 +37,7 @@
       <PackageReference Include="Fable.Elmish.Debugger" Version="3.2.0" />
       <PackageReference Include="Fable.Elmish.HMR" Version="4.0.1" />
       <PackageReference Include="Fable.Elmish.React" Version="3.0.1" />
+      <PackageReference Include="Fable.FontAwesome.Free" Version="2.1.0" />
       <PackageReference Include="Fable.MaterialUI" Version="4.1.0" />
       <PackageReference Include="Fable.MaterialUI.MaterialDesignIcons" Version="3.0.0" />
       <PackageReference Include="Fable.React.Flatpickr" Version="3.0.0" />
