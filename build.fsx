@@ -49,16 +49,16 @@ Target.create "Bundle" (fun _ ->
 
 Target.create "Azure" (fun _ ->
     let web = webApp {
-        name "safetemp"
+        name "safe-success-web"
         zip_deploy "deploy"
     }
     let deployment = arm {
-        location Location.WestEurope
+        location Location.SouthAfricaNorth
         add_resource web
     }
 
     deployment
-    |> Deploy.execute "safetemp" Deploy.NoParameters
+    |> Deploy.execute "success-success" Deploy.NoParameters
     |> ignore
 )
 

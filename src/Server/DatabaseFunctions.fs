@@ -218,6 +218,19 @@ module DbFunctions =
           ContractType = x.ContractType |> Option.defaultValue "Error loading data"
     })
 
+  let getCustomerVisitHistory customerId =
+    Customer.customerVisitHistory customerId
+    |> List.map (fun x ->  {
+        CustomerId = x.CustomerId |> int
+        VisitDate = x.VisitDate
+        Rotation = x.Rotation
+        GYPercentage = x.GYPercentage
+        GPPercentage = x.GPPercentage
+        OtherSupplier = x.OtherSuppliers
+        Comments = x.Comments
+    })
+
+
   let markCustomerForDeletion customerId reason =
     Customer.markForDeletion (customerId, reason)
     |> ignore
@@ -228,12 +241,12 @@ module DbFunctions =
 
   let recordCustomerVisit (visitData : Shared.CustomerVisitData) =
     let requestData = {
-        Customer.CustomerVisitData.CustomerId = visitData.CustomerId
+        Customer.CustomerVisitData.CustomerId = visitData.CustomerId |> int64
         Customer.CustomerVisitData.VisitDate = visitData.VisitDate
         Customer.CustomerVisitData.Rotation = visitData.Rotation
         Customer.CustomerVisitData.GYPercentage = visitData.GYPercentage
         Customer.CustomerVisitData.GPPercentage = visitData.GPPercentage
-        Customer.CustomerVisitData.OtherSupplier = visitData.OtherSupplier
+        Customer.CustomerVisitData.OtherSuppliers = visitData.OtherSupplier
         Customer.CustomerVisitData.Comments = visitData.Comments
            }
     Customer.recordVisit requestData

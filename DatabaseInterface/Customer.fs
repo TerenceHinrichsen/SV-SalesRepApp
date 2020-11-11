@@ -95,12 +95,12 @@ module Customer =
     }
 
     type CustomerVisitData = {
-        CustomerId : int
+        CustomerId : int64
         VisitDate: DateTime
         Rotation: string
         GYPercentage: int
         GPPercentage: string
-        OtherSupplier : string
+        OtherSuppliers : string
         Comments: string
     }
 
@@ -122,6 +122,16 @@ module Customer =
     connection.Query<CustomerProductMixDataPoint>(sql, parameters ,transaction = transaction) |> List.ofSeq
 
 
+  let customerVisitHistory customerId =
+    registerOptionTypes()
+    let sql = SqlScripts.CustomerVisitHistory
+    let connection = new SqlConnection(sqlConnectionString)
+    do connection.Open()
+    let transaction = connection.BeginTransaction("LookupCustomerVisitHistory")
+    let parameters = dict ["CustomerId" => customerId ]
+    connection.Query<CustomerVisitData>(sql, parameters ,transaction = transaction) |> List.ofSeq
+
+
   let LookupCustomerId customerCode =
     registerOptionTypes()
     let sql = SqlScripts.CustomerIdLookup
@@ -140,13 +150,13 @@ module Customer =
     let parameters = dict ["CustomerId" => customerId]
     connection.Query<Customer>(sql, parameters ,transaction = transaction) |> List.ofSeq
 
-  let FetchListBasedOnSearch search =
+  let FetchListBasedOnSearch (search: string) =
     registerOptionTypes()
     let sql = SqlScripts.customerSearchString
     let connection = new SqlConnection(sqlConnectionString)
     do connection.Open()
     let transaction = connection.BeginTransaction("ReadOneCustomers")
-    let wildcardSearch = sprintf "%%%s%%" search
+    let wildcardSearch = sprintf "%%%s%%" (search.Trim())
     let parameters = dict ["Search" => wildcardSearch]
     printfn "%s" wildcardSearch
     connection.Query<Customer>(sql, parameters, transaction = transaction) |> List.ofSeq
@@ -421,7 +431,7 @@ module Customer =
                            "Rotation" => visitData.Rotation
                            "GYPercentage" => visitData.GYPercentage
                            "GPPercentage" => visitData.GPPercentage
-                           "OtherSuppliers" => visitData.OtherSupplier
+                           "OtherSuppliers" => visitData.OtherSuppliers
                            "GeneralComments" => visitData.Comments ]
     try connection.Query<unit> (sql, parameters, transaction) |> ignore
         transaction.Commit()

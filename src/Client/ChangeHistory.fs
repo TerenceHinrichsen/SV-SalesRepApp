@@ -35,7 +35,11 @@ module ChangeHistory =
         "
         ; DateTime = System.DateTime(2020,09,13)}
         { Version = "1.1.1"; Change = "Record visit fields added to New Customer Account Application. Changes to GP % column for funny behaviour when deleting."; DateTime = System.DateTime(2020,10,15)}
-    ]
+        { Version = "1.2.0"; Change = "Update to Safe Stack V2."; DateTime = System.DateTime(2020,11,07)}
+        { Version = "1.2.1"; Change = "Add visit history to customer view screen. Fix issue with 'spaces' in search criteria
+          resulting in unexpected behaviour."; DateTime = System.DateTime(2020,11,11)}
+
+        ]
     }, Cmd.none
 
   let changeCard (changeData: ChangeData) =

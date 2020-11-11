@@ -207,4 +207,5 @@ type ISuccessApi =
       markCustomerForDeletion : (int * string) -> Async<unit>
       markCustomerForArchive : (int * string) -> Async<unit>
       recordCustomerVisit : CustomerVisitData -> Async<unit>
+      getCustomerVisitHistory : int -> Async<CustomerVisitData list>
     }

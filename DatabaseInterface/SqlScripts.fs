@@ -134,53 +134,53 @@ ORDER BY CustomerAccountNumber ;
 [<Literal>]
 let customerSearchString = """
 SELECT c.CustomerId
-	 , c.CustomerAccountNumber
-	 , c.CustomerAccountName
-	 , c.CustomerAccountDescription
-	 , c.AreaId
-	 , c.AreaCode
-	 , c.AreaDescription
-	 , c.GroupId
-	 , c.GroupCode
-	 , c.GroupDescription
-	 , c.PriceListId
-	 , c.PriceListName
-	 , c.PriceListDescription
-	 , c.CustomerIsOnHold
-	 , c.Physical
-	 , c.Physical2
-	 , c.Suburb
-	 , c.Physical4
-	 , c.GPS
-	 , c.PhysicalPC
-	 , c.Telephone
-	 , c.Cellphone
-	 , c.Fax
-	 , c.MainAccLink
-	 , c.udARLastVisit
-	 , c.IsChildAccount
-	 , c.MasterAccountNumber
-	 , c.MasterAccountName
-	 , c.AgeingTermCode
-	 , c.AgeingTermDescription
-	 , c.RepVisitFrequency
-	 , c.Delivered_To DeliveryContact
-	 , c.Contact_Person ContactPerson
-	 , c.SalesRepId
-	 , c.SalesRepCode
-	 , c.SalesRepName
-	 , c.EMail
-	 , c.ucARDeliveryEmail DeliveryEmail
-	 , c.ulARMarketSegment MarketSegment
+     , c.CustomerAccountNumber
+     , c.CustomerAccountName
+     , c.CustomerAccountDescription
+     , c.AreaId
+     , c.AreaCode
+     , c.AreaDescription
+     , c.GroupId
+     , c.GroupCode
+     , c.GroupDescription
+     , c.PriceListId
+     , c.PriceListName
+     , c.PriceListDescription
+     , c.CustomerIsOnHold
+     , c.Physical
+     , c.Physical2
+     , c.Suburb
+     , c.Physical4
+     , c.GPS
+     , c.PhysicalPC
+     , c.Telephone
+     , c.Cellphone
+     , c.Fax
+     , c.MainAccLink
+     , c.udARLastVisit
+     , c.IsChildAccount
+     , c.MasterAccountNumber
+     , c.MasterAccountName
+     , c.AgeingTermCode
+     , c.AgeingTermDescription
+     , c.RepVisitFrequency
+     , c.Delivered_To DeliveryContact
+     , c.Contact_Person ContactPerson
+     , c.SalesRepId
+     , c.SalesRepCode
+     , c.SalesRepName
+     , c.EMail
+     , c.ucARDeliveryEmail DeliveryEmail
+     , c.ulARMarketSegment MarketSegment
      , c.AccountStatus AccountStatus
 FROM   dbo.Customer c
 WHERE c.AccountStatus <> 'DELETE'
-AND (CustomerAccountName LIKE @Search
-OR CustomerAccountNumber LIKE @Search
-OR Physical LIKE @Search
-OR Suburb LIKE @Search
-OR Delivered_To LIKE @Search
-OR Contact_Person LIKE @Search)
+AND (CustomerAccountName LIKE TRIM(@Search)
+OR CustomerAccountNumber LIKE TRIM(@Search)
+OR Physical LIKE TRIM(@Search)
+OR Suburb LIKE TRIM(@Search)
+OR Delivered_To LIKE TRIM(@Search)
+OR Contact_Person LIKE TRIM(@Search) )
 ORDER BY CustomerAccountNumber ;
 """
 
@@ -643,13 +643,29 @@ WHERE c.CustomerId = @customerId
 let CustomerProductMix =
     """
         SELECT	 csh.cSimpleCode ProductCode
-	           , SUM(csh.Boxes) TotalBoxes
+               , SUM(csh.Boxes) TotalBoxes
         FROM	 dbo.CustomerSalesHistory csh
         WHERE	 csh.DCLink = @CustomerId
-		         AND csh.TxDate >= DATEADD(WEEK, -8, GETDATE())
+                 AND csh.TxDate >= DATEADD(WEEK, -8, GETDATE())
         GROUP BY csh.cSimpleCode
         HAVING	 SUM(csh.Boxes) > 0;
    """
+
+let CustomerVisitHistory =
+    """
+        SELECT
+          cv.CustomerId
+        , cv.VisitDate
+        , cv.Rotation
+        , cv.GYPercentage
+        , cv.GPPercentage
+        , cv.OtherSuppliers
+        , cv.GeneralComments Comments
+        FROM
+          [dbo].[CustomerVisit] cv
+        WHERE
+          cv.CustomerId = @customerId
+    """
 
 let Last5Invoices = """
 SELECT TOP 5

@@ -37,6 +37,7 @@ module CustomerView =
     ShowToDoScreen : bool
     ShowCustomerVisit : bool
     CustomerSpecials : CustomerSpecial list
+    VisitHistory : CustomerVisitData list
     ProductMix : ProductMixDatapoint list
     Telephone: string
     CurrentUser: Shared.User
@@ -72,6 +73,8 @@ module CustomerView =
     | RequestArchive
     | DeletionRequestResponse of unit
     | CloseViewScreen
+    | LoadVisitHistory
+    | VisitHistoryLoaded of CustomerVisitData list
 
 
   let init user =
@@ -103,6 +106,7 @@ module CustomerView =
       ProductMix = List.empty
       Telephone = ""
       CurrentUser = user
+      VisitHistory = List.empty
     }, Cmd.none
 
   let update (msg: Message) (state: State) =
@@ -197,6 +201,9 @@ module CustomerView =
     | VisitSaved _ ->
         state, Toast.successMessage 5000 "Customer visit recorded"
     | CloseViewScreen -> state, Cmd.none
+    | LoadVisitHistory -> state, Cmd.OfAsync.perform Server.api.getCustomerVisitHistory (state.CurrentCustomerId |> Option.get) VisitHistoryLoaded
+    | VisitHistoryLoaded cvh -> { state with VisitHistory = cvh }, Cmd.none
+
 
   let tableRows (list : TransDetail list) =
     list |> List.map ( fun x -> Mui.tableRow [
@@ -236,17 +243,42 @@ module CustomerView =
                     Mui.tableCell (x.UnitPrice.ToString("C2")) ]
     ]) ) ] ] ] ]
 
+  let visitTable ( list : CustomerVisitData list) =
+    Mui.container [
+        container.children [
+            Mui.table [
+                table.stickyHeader true
+                table.children [
+        Mui.tableHead [
+            Mui.tableCell "Visit date"
+            Mui.tableCell "GY %"
+            Mui.tableCell "Other suppliers"
+            Mui.tableCell "Remarks"
+        ]
+        Mui.tableBody (
+            list
+            |> List.sortBy (fun x -> x.VisitDate)
+            |> List.map (fun x ->
+              Mui.tableRow [
+                  tableRow.children [
+                    Mui.tableCell (x.VisitDate.ToString("yyyy-MM-dd HH:mm"))
+                    Mui.tableCell (x.GYPercentage.ToString())
+                    Mui.tableCell (x.OtherSupplier)
+                    Mui.tableCell (x.Comments) ]
+    ]) ) ] ] ] ]
+
   type PieSlice = { name: string; value : int }
 
   let productMixGraph ( list : ProductMixDatapoint list) =
     let productMixList datapoint =
         Mui.tableRow [
             Mui.tableCell datapoint.ProductCode
+            Mui.tableCell ((datapoint.TotalBoxes / 8.00).ToString("0.00"))
             Mui.tableCell (datapoint.TotalBoxes.ToString("0.00"))
         ]
     let cells =
         list
-        |> List.map (fun x -> { name = x.ProductCode; value = x.TotalBoxes |> int})
+        |> List.map (fun x -> { name = x.ProductCode; value = (x.TotalBoxes / 8.0) |> int})
     Mui.container [
         container.children [
     Recharts.pieChart [
@@ -267,6 +299,7 @@ module CustomerView =
             Mui.tableHead [
                 Mui.tableRow [
                     Mui.tableCell "Product code"
+                    Mui.tableCell "Avg boxes per week"
                     Mui.tableCell "TotalBoxes (for last 8 weeks)" ] ]
             Mui.tableBody (List.map productMixList list )
         ] ]]]
@@ -371,7 +404,7 @@ module CustomerView =
 
                     Mui.expansionPanel [
                       expansionPanel.variant.outlined
-                      prop.onClick (fun x -> dispatch LoadSalesHistory)
+                      prop.onClick (fun _ -> dispatch LoadSalesHistory)
                       expansionPanel.children [
                         Mui.expansionPanelSummary [
                           expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")
@@ -406,7 +439,20 @@ module CustomerView =
                             Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
                               card.children (specialsTable state.CustomerSpecials)
                               ] ] ] ] ]
-                  ]
+                    Mui.expansionPanel [
+                      expansionPanel.variant.outlined
+                      prop.onClick(fun x -> dispatch LoadVisitHistory)
+                      expansionPanel.defaultExpanded false
+                      expansionPanel.children [
+                        Mui.expansionPanelSummary [
+                          expansionPanelSummary.expandIcon (MaterialDesignIcons.arrowExpandDownIcon "")
+                          expansionPanelSummary.children (Strings.header5 "Visit history") ]
+                        Mui.expansionPanelDetails [
+                          expansionPanelDetails.classes.root "wrappingContainer"
+                          expansionPanelDetails.children [
+                            Mui.card [ card.square true; card.raised true ; card.classes.root "FullCard";
+                              card.children (visitTable state.VisitHistory)
+                              ] ] ] ] ]                  ]
             | None -> Mui.card [
                 card.children [
                       Mui.container [container.children [ if state.IsLoading then Mui.linearProgress[] else Mui.hidden [hidden.xsUp true] ] ]

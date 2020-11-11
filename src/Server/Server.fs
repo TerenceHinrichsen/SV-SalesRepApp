@@ -40,6 +40,7 @@ let successApi = {
   markCustomerForDeletion            = fun (customerId, reason) -> async {return DbFunctions.markCustomerForDeletion customerId reason }
   markCustomerForArchive             = fun (customerId, reason) -> async {return DbFunctions.markCustomerForArchive customerId reason }
   recordCustomerVisit                = fun (customerVisitData) -> async {return DbFunctions.recordCustomerVisit customerVisitData }
+  getCustomerVisitHistory            = fun customerId -> async {return DbFunctions.getCustomerVisitHistory customerId}
 }
 
 let errorHandler (ex: Exception) (routeInfo: RouteInfo<HttpContext>) =
@@ -62,5 +63,6 @@ let app =
         memory_cache
         use_static "public"
         use_gzip
+        use_developer_exceptions
     }
 run app
